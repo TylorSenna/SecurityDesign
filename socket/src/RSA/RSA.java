@@ -71,6 +71,10 @@ public class RSA {
         System.out.println("d:"+selfkey[1]);*/
     }
 
+	/**
+	*@pubkey pubkey[0]=n,pubkey[1]=e
+	*@selfkey selfkey[0]=n,selfkey[1]=d
+	*/
     public RSA(BigInteger[] pubkey, BigInteger[]selfkey){
         this.pubkey = pubkey;
         this.selfkey = selfkey;
