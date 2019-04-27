@@ -1,4 +1,4 @@
-package RSA;
+package com.company.rsa;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
@@ -55,7 +55,7 @@ public class Convert {
         return m;
     }
 
-    public static String BigToStringWithoutAscll(BigInteger[] d){
+    public static String BigToStringWithoutAscll(BigInteger[] d){//只是把数据连接起来，而不是通过char把数据转为String。
         StringBuilder stringBuilder_merge = new StringBuilder();
         for(int k=0; k<d.length; k++){
             String result = d[k].toString();
