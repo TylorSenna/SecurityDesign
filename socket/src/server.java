@@ -41,6 +41,21 @@ public class server {
                         //判断成功，as调用Kerberos类中函数，返回加密后报文
                         output.writeUTF(kerberos.as_to_client("1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
                     }
+                    else if(result[0].equals("0000")){
+                        //返回证书
+                        output.writeUTF(kerberos.get_Certification());
+
+                        String user_information_encrpt = input.readUTF();
+                        System.out.println("user_information_encrpt:"+user_information_encrpt);
+
+                        String []user_information = kerberos.parse_client_id_key(user_information_encrpt);
+
+                        System.out.println("user_id:"+user_information[0]);
+                        System.out.println("user_key:"+user_information[1]);
+
+                        //receive = input.readUTF();
+                        //调用插入数据库操作
+                    }
                     else{
                         //数据库查询失败，返回出错码0000，不存在数据库中
                         output.writeUTF("0000");
