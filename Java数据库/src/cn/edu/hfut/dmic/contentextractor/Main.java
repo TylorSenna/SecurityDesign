@@ -36,24 +36,24 @@ public class Main { //创建 HandleSql 类
     }
 
 
-    public boolean chazhao(String zh,String mm){
+    public String chazhao(String zh){
+
         try {
             Statement state = con.createStatement();
-            String sql="select * from tb_user where userid='"+zh+"' and usercom='"+mm+"'";
+            String sql="select * from tb_user where userid='"+zh+"'";
             ResultSet re=state.executeQuery(sql);
             if(re.next()){
                 //con.close();
-                System.out.println("true");
-                return true;
+                return re.getString(0);
             }
             else{
                 //con.close();
                 System.out.println("false");
-                return false;
+                return null;
             }
         }catch (SQLException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -80,7 +80,7 @@ public class Main { //创建 HandleSql 类
     }
 
 
-    public static void main(String[] args) {//主方法
+    /*public static void main(String[] args) {//主方法
         Main h = new Main();//创建本类对象
         con=h.getConnection();
         Scanner sc=new Scanner(System.in);
@@ -115,7 +115,7 @@ public class Main { //创建 HandleSql 类
             b=sc.next();
             ch = b.toCharArray();
         }
-    }
+    }*/
 }
 
 
