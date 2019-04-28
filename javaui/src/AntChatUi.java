@@ -2,9 +2,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Vector;
 import java.util.regex.Pattern;
+
+import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class AntChatUi {
     public static JFrame frame = new JFrame("物联网安全课程设计");
@@ -64,23 +68,6 @@ public class AntChatUi {
         frame.setVisible(true);
     }
 
-    /*
-    *动态显示当前登陆的用户
-    * @list 显示当前在线用户列表
-    */
-    public static void updataOnline(JList<String> list)
-    {
-        Vector vt=new Vector();
-        vt.add("窗边月");
-
-        vt.add("醉里论道");
-
-        list.setListData(vt);
-    }
-
-
-
-
 
     /*
     *生成注册本次匿名聊天的昵称界面
@@ -91,10 +78,25 @@ public class AntChatUi {
     */
     public static void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name,BackgroundClient client)
     {
+        //监听关闭窗口的事件
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
 
-        updataOnline(list);
+            }
+
+        });
+
+        try {
+            client.AquireList(list);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         //创建显示文字的区域
-        JTextArea textarea0=new JTextArea("轻剑白马：你好\n窗边月：你好呀\n醉里论道：最近的复联4看了没\n轻剑白马：嗯，还不错\n窗边月：我觉得一般般\n醉里论道：2333\n");
+        JTextArea textarea0=new JTextArea();
         //将后台与前台ui连接
         client.update(textarea0,jl1,jl2);
         JScrollPane jsp0 = new JScrollPane(textarea0);
@@ -118,17 +120,8 @@ public class AntChatUi {
 
         sendButton.setBounds(185, 175, 80, 25);
         panel.add(sendButton);
-        jl1.setText("客户\n" +
-                "明文：长度0011类型1100数据段长度001111数据段 客户编号1010100000服务器编号110011110校验码001101\n" +
-                "密文：31353232546526513523131235419832516519\n" +
-                "服务器\n" +
-                "明文：长度0011类型1100数据段长度011011数据段1010100010111000110011110校验码011101\n" +
-                "密文：654168492568448892316981265235164174198516515\n");
-        jl2.setText("客户\n" +
-                "明文：你好\n" +
-                "数据：长度0011类型1100数据段长度011011数据段1010100010111000110011110校验码011101\n" +
-                ""+
-                ".....\n......\n......\n");
+        jl1.setText("");
+        jl2.setText("");
         jl2.setForeground(Color.red);
         jl2.setEditable(false);
         jl2.setText(jl2.getText()+"haha\n");
@@ -136,12 +129,18 @@ public class AntChatUi {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 // TODO Auto-generated method stub
-                JOptionPane.showMessageDialog(null, "OK!");
-                try {
-                    client.SendMessage(userText.getText());
-                    userText.setText("");
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(userText.getText().length()==0) {
+                    JOptionPane.showMessageDialog(null, "发送消息不能为空!");
+                }
+                else{
+                    JOptionPane.showMessageDialog(null, "OK!");
+
+                    try {
+                        client.SendMessage(userText.getText());
+                        userText.setText("");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -159,7 +158,11 @@ public class AntChatUi {
     public static void inputFunname(JFrame frame,JPanel panel,JTextArea textarea1,JTextArea textarea2,JLabel OnlineLabel,JList<String> list) throws IOException {
         BackgroundClient client=new BackgroundClient();
         client.init();
-
+        try {
+            client.AquireList(list);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         /*
          * 创建文本域用于用户输入
          */
@@ -218,13 +221,12 @@ public class AntChatUi {
 
         //显示在线人员
         JList<String> list = new JList<String>();
-        list.setListData(new String[]{"窗边月", "醉里论道"});
         list.setBounds(520, 50, 120, 455);
         panel.add(list);
 
-        JLabel jl01 = new JLabel("用户ID(四位数字如0023)：");
+        JLabel jl01 = new JLabel("用户ID(4位数字如0023)：");
         final JTextField jtf01 = new JTextField();
-        JLabel jl02 = new JLabel("用户口令(六位字符串如anc123):");
+        JLabel jl02 = new JLabel("用户口令(6-12字符串如anc123):");
         final JPasswordField jpf01 = new JPasswordField();
         // 设置密码字符为*
         jpf01.setEchoChar('*');

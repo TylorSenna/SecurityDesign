@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 
 import static java.lang.Thread.sleep;
 
@@ -139,10 +140,38 @@ public class BackgroundClient {
             }
             String str=chattextarea.getText();
             chattextarea.setText(str+"\n"+content);
+            chattextarea.setCaretPosition(chattextarea.getText().length());
             sk.interestOps(SelectionKey.OP_READ);
         }
     }
-
+    /*
+    *解开在线用户列表
+    */
+    private void UntagList(JList<String> list,String content)
+    {
+        String[] arrayContent = content.toString().split(USER_CONTENT_SPILIT);
+        updataOnline(list,arrayContent);
+    }
+    /*
+    *请求在线用户列表
+    */
+    public void AquireList(JList<String> list) throws IOException, InterruptedException {
+        String meg = "userlist" + USER_CONTENT_SPILIT;
+        sc.write(charset.encode(meg));//sc既能写也能读，这边是写
+        ByteBuffer buff = ByteBuffer.allocate(1024);
+        sleep(100);
+        String content = "";
+        while(sc.read(buff) > 0)
+        {
+            buff.flip();
+            content += charset.decode(buff);
+        }
+        UntagList(list,content);
+    }
+    public static void updataOnline(JList<String> list,String []s)
+    {
+        list.setListData(s);
+    }
 
 
 }

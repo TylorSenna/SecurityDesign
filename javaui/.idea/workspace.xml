@@ -12,27 +12,31 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="AntChatUi.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="AntChatUi.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4364">
-              <caret line="107" column="10" lean-forward="true" selection-start-line="107" selection-start-column="10" selection-end-line="107" selection-end-column="10" />
+            <state relative-caret-position="59">
+              <caret line="267" column="44" lean-forward="true" selection-start-line="267" selection-start-column="44" selection-end-line="267" selection-end-column="44" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
-                <element signature="method#chatroom#0;class#AntChatUi#0" expanded="false" />
-                <element signature="e#6674#6682#0" expanded="true" />
+                <element signature="e#2179#2321#0" expanded="true" />
+                <element signature="e#2320#2321#0" expanded="true" />
+                <element signature="e#6711#6719#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BackgroundClient.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="BackgroundClient.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="77">
-              <caret line="136" column="44" lean-forward="true" selection-start-line="136" selection-start-column="44" selection-end-line="136" selection-end-column="44" />
-              <folding />
+            <state relative-caret-position="1464">
+              <caret line="175" column="0" lean-forward="false" selection-start-line="175" selection-start-column="0" selection-end-line="175" selection-end-column="0" />
+              <folding>
+                <element signature="e#5273#5274#0" expanded="true" />
+                <element signature="e#5308#5309#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -72,8 +76,8 @@
         <option value="$PROJECT_DIR$/src/InputFunName.java" />
         <option value="$PROJECT_DIR$/src/SwingLoginExample.java" />
         <option value="$USER_HOME$/Desktop/AnonymousChat.java" />
-        <option value="$PROJECT_DIR$/src/AntChatUi.java" />
         <option value="$PROJECT_DIR$/src/BackgroundClient.java" />
+        <option value="$PROJECT_DIR$/src/AntChatUi.java" />
       </list>
     </option>
   </component>
@@ -358,12 +362,12 @@
       <workItem from="1556173034682" duration="5378000" />
       <workItem from="1556280189893" duration="6142000" />
       <workItem from="1556290040198" duration="2038000" />
-      <workItem from="1556334450147" duration="19736000" />
+      <workItem from="1556334450147" duration="25749000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="62664000" />
+    <option name="totallyTimeSpent" value="68677000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="7" />
@@ -447,8 +451,9 @@
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
-            <element signature="method#chatroom#0;class#AntChatUi#0" expanded="false" />
-            <element signature="e#6674#6682#0" expanded="true" />
+            <element signature="e#2179#2321#0" expanded="true" />
+            <element signature="e#2320#2321#0" expanded="true" />
+            <element signature="e#6711#6719#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -491,8 +496,9 @@
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
-            <element signature="method#chatroom#0;class#AntChatUi#0" expanded="false" />
-            <element signature="e#6674#6682#0" expanded="true" />
+            <element signature="e#2179#2321#0" expanded="true" />
+            <element signature="e#2320#2321#0" expanded="true" />
+            <element signature="e#6711#6719#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -542,8 +548,9 @@
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
-            <element signature="method#chatroom#0;class#AntChatUi#0" expanded="false" />
-            <element signature="e#6674#6682#0" expanded="true" />
+            <element signature="e#2179#2321#0" expanded="true" />
+            <element signature="e#2320#2321#0" expanded="true" />
+            <element signature="e#6711#6719#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -712,24 +719,28 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
+    <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4364">
-          <caret line="107" column="10" lean-forward="true" selection-start-line="107" selection-start-column="10" selection-end-line="107" selection-end-column="10" />
+        <state relative-caret-position="1464">
+          <caret line="175" column="0" lean-forward="false" selection-start-line="175" selection-start-column="0" selection-end-line="175" selection-end-column="0" />
           <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
-            <element signature="method#chatroom#0;class#AntChatUi#0" expanded="false" />
-            <element signature="e#6674#6682#0" expanded="true" />
+            <element signature="e#5273#5274#0" expanded="true" />
+            <element signature="e#5308#5309#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
+    <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="77">
-          <caret line="136" column="44" lean-forward="true" selection-start-line="136" selection-start-column="44" selection-end-line="136" selection-end-column="44" />
-          <folding />
+        <state relative-caret-position="59">
+          <caret line="267" column="44" lean-forward="true" selection-start-line="267" selection-start-column="44" selection-end-line="267" selection-end-column="44" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="method#resetFrame#0;class#AntChatUi#0" expanded="false" />
+            <element signature="e#2179#2321#0" expanded="true" />
+            <element signature="e#2320#2321#0" expanded="true" />
+            <element signature="e#6711#6719#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
