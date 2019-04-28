@@ -1,5 +1,4 @@
-//导入包
-package cn.edu.hfut.dmic.contentextractor;
+
 import java.sql.*;
 import java.util.*;
 import java.sql.Connection;
@@ -9,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 
-public class Main { //创建 HandleSql 类
+public class DB { //创建 HandleSql 类
     static Connection con; //声明 Connection 对象
     static PreparedStatement pStmt;//声明预处理 PreparedStatement 对象
     static ResultSet res;//声明结果 ResultSet 对象
@@ -18,7 +17,7 @@ public class Main { //创建 HandleSql 类
     static String password = "120306wcy";
 
 
-    public static Connection getConnection() {//建立返回值为 Connection 的方法
+    public Connection getConnection() {//建立返回值为 Connection 的方法
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             System.out.println("数据库驱动加载成功");
@@ -40,11 +39,11 @@ public class Main { //创建 HandleSql 类
 
         try {
             Statement state = con.createStatement();
-            String sql="select * from tb_user where userid='"+zh+"'";
+            String sql="select usercom from tb_user where userid='"+zh+"'";
             ResultSet re=state.executeQuery(sql);
             if(re.next()){
                 //con.close();
-                return re.getString(0);
+                return re.getString(1);
             }
             else{
                 //con.close();

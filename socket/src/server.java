@@ -37,9 +37,13 @@ public class server {
                     Kerberos kerberos = new Kerberos();
                     String []result = kerberos.parse_client(receive);
                     System.out.println(receive);
-                    if(result[0].equals("0001")){  //数据库查询ID判断
+                    DB db = new DB();
+                    db.getConnection();
+                    String chazhao = db.chazhao(result[0]);
+
+                    if(chazhao!=null){  //数据库查询ID判断
                         //判断成功，as调用Kerberos类中函数，返回加密后报文
-                        output.writeUTF(kerberos.as_to_client("1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
+                        output.writeUTF(kerberos.as_to_client(chazhao,"1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
                     }
                     else if(result[0].equals("0000")){
                         //返回证书

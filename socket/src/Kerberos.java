@@ -41,12 +41,13 @@ public class Kerberos {
         return  message;
     }
 
-    public String as_to_client(String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
+    //ID_key用户口令
+    public String as_to_client(String ID_key,String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
         String message;
 
         TS_2 = new Date();
         message = K_c_tgs + ID_tgs + TS_2.getTime() + Lifetime_2 + Ticket_tgs;
-        DES des = new DES("abcdefg");
+        DES des = new DES(ID_key);
 
         System.out.println("明文是："+message);
         message = des.encrypt_string(message);
@@ -83,6 +84,7 @@ public class Kerberos {
      */
     public String[] client_parse_as(String message){
         String parse[] = new String[5];
+        //界面输入的口令
         DES des = new DES("abcdefg");
         message = des.decrypt_string(message);
         System.out.println(message);
@@ -90,7 +92,7 @@ public class Kerberos {
         parse[1] = message.substring(7,9);
         parse[2] = message.substring(9,22);
         parse[3] = message.substring(22,35);
-        parse[4] = message.substring(35,35+49);
+        parse[4] = message.substring(35,35+51);
         DES des1 = new DES("tgsmima");
         String enTicket = message.substring(35,message.length());
         System.out.println("enticket is:"+enTicket);
@@ -182,6 +184,15 @@ public class Kerberos {
         String []user = new String[2];
         user[0] = decrpt_information.substring(0,4);
         user[1] =  decrpt_information.substring(4);
+
+        DB db = new DB();
+        db.getConnection();
+        if(db.tianjia(user[0],user[1])){
+            System.out.println("add successfully!");
+        }
+        else{
+            System.out.println("add false!");
+        }
         return user;
     }
 

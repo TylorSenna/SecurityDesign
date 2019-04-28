@@ -1,4 +1,4 @@
-package com.company.rsa;
+package RSA;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
