@@ -184,7 +184,12 @@ public class RSA {
      * @param message 消息
      */
     public String sign_string(String message){
-        BigInteger hm = BigInteger.valueOf(message.hashCode() & Integer.MAX_VALUE);
+        BigInteger hm;
+        if(message.hashCode() < 0){   //1代表原hash为负数 2代表正数
+            hm = new BigInteger("1"+ (message.hashCode() & Integer.MAX_VALUE));
+        }else {
+            hm = new BigInteger("2"+ message.hashCode());
+        }
         hm = sign(hm,selfkey);
         BigInteger[] bigIntegers = new BigInteger[1];
         bigIntegers[0] = hm;
@@ -200,6 +205,17 @@ public class RSA {
         BigInteger v = verify(s[0],pubkey);
         BigInteger[] bigIntegers = new BigInteger[1];
         bigIntegers[0] = v;
-        return Convert.BigToStringWithoutAscll(bigIntegers);
+        String result = Convert.BigToStringWithoutAscll(bigIntegers);
+
+        if(result.charAt(0) == '2'){
+            result = result.substring(1,result.length());
+        }else {
+            result = result.substring(1,result.length());
+            result = "-"+ result;
+            int temp = Integer.parseInt(result);
+            temp = temp&Integer.MAX_VALUE;
+            result = String.valueOf(-temp);
+        }
+        return result;
     }
 }
