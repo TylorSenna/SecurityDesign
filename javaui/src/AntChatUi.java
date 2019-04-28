@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -88,11 +89,14 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public static void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name)
+    public static void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name,BackgroundClient client)
     {
+
         updataOnline(list);
         //创建显示文字的区域
         JTextArea textarea0=new JTextArea("轻剑白马：你好\n窗边月：你好呀\n醉里论道：最近的复联4看了没\n轻剑白马：嗯，还不错\n窗边月：我觉得一般般\n醉里论道：2333\n");
+        //将后台与前台ui连接
+        client.update(textarea0,jl1,jl2);
         JScrollPane jsp0 = new JScrollPane(textarea0);
         textarea0.setEditable(false);
         //设置矩形大小.参数依次为(矩形左上角横坐标x,矩形左上角纵坐标y，矩形长度，矩形宽度)
@@ -100,8 +104,7 @@ public class AntChatUi {
         //默认的设置是超过文本框才会显示滚动条，以下设置让滚动条一直显示
         jsp0.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         panel.add(jsp0);
-        //把滚动条添加到容器里面
-
+        client.StartThread();
         /*
          * 创建文本域用于用户输入
          */
@@ -112,13 +115,7 @@ public class AntChatUi {
         // 创建发送按钮
         JButton sendButton = new JButton("发送");
         // 实现"重置"按钮功能
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                // TODO Auto-generated method stub
-                JOptionPane.showMessageDialog(null, "OK!");
-            }
-        });
+
         sendButton.setBounds(185, 175, 80, 25);
         panel.add(sendButton);
         jl1.setText("客户\n" +
@@ -135,11 +132,19 @@ public class AntChatUi {
         jl2.setForeground(Color.red);
         jl2.setEditable(false);
         jl2.setText(jl2.getText()+"haha\n");
-
-
-
-
-
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                // TODO Auto-generated method stub
+                JOptionPane.showMessageDialog(null, "OK!");
+                try {
+                    client.SendMessage(userText.getText());
+                    userText.setText("");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
@@ -151,8 +156,10 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public static void inputFunname(JFrame frame,JPanel panel,JTextArea textarea1,JTextArea textarea2,JLabel OnlineLabel,JList<String> list)
-    {
+    public static void inputFunname(JFrame frame,JPanel panel,JTextArea textarea1,JTextArea textarea2,JLabel OnlineLabel,JList<String> list) throws IOException {
+        BackgroundClient client=new BackgroundClient();
+        client.init();
+
         /*
          * 创建文本域用于用户输入
          */
@@ -169,13 +176,27 @@ public class AntChatUi {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 // TODO Auto-generated method stub
-                JOptionPane.showMessageDialog(null, "OK!");
-                String name=userText.getText();
-                frame.setTitle(name);
-                jl0.setVisible(false);
-                userText.setVisible(false);
-                confirmButton.setVisible(false);
-                Anonymousroom(panel,textarea1,textarea2,OnlineLabel,list,name);
+                try {
+                    if(client.RequestAnonymous(userText.getText())==true)
+                    {
+                        JOptionPane.showMessageDialog(null, "OK!");
+                        String name=userText.getText();
+                        frame.setTitle(name);
+                        jl0.setVisible(false);
+                        userText.setVisible(false);
+                        confirmButton.setVisible(false);
+                        Anonymousroom(panel,textarea1,textarea2,OnlineLabel,list,name,client);
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "昵称重复!");
+                        userText.setText("");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
         confirmButton.setBounds(185, 60, 80, 25);
@@ -244,7 +265,11 @@ public class AntChatUi {
                     jb03.setVisible(false);
                     jtf01.setVisible(false);
                     jpf01.setVisible(false);
-                    inputFunname(frame,panel,textarea1,textarea2,OnlineLabel,list);
+                    try {
+                        inputFunname(frame,panel,textarea1,textarea2,OnlineLabel,list);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
 
                 } else if (jtf01.getText().trim().length() == 0){
                     JOptionPane.showMessageDialog(null, "用户ID不能为空!");
