@@ -7,20 +7,32 @@ import java.util.Date;
 public class Kerberos {
 
     String ID_as = "00";
-    String ID_tgs = "00";
+    String ID_tgs = "01";
+    String ID_v = "02";
     String register = "0000";
     String ID_as_N = "13437348013206713011776153015230929232275142817544473901779622638713964556654757389258697305272298230812548643581242705983325011038307842461961432768279203877965082199907212517594145633949362437385253554141142472891146024887883490345056601985592050961160923771002647072077973006928639919590414713426331600378895549387703651544877722302949645632333230162887167173666465346006486189481652060954198820673985924611126552957272699060568036444193024486315435969548092076311181406929291804329522086582271187414843689958113161246015868093222834647317060724019451851518581086867739687259690919551979067134606990094794229793401";
     String ID_as_PK = "65537";//公钥e
-    String ID_as_SK = "6901667324908847928489205893551555745420351593471848513172770765243309290043117452428963943921309042943393806423672287808485331897408796330501606549171403661079735598685882487064353513044074171915483160442879545600025425999832860346139589536246914375141337794768147811056603893773363875876725356190300868212565685844233981770145413171885929101382291989203265881631353655297461791497418329519708520781888123775664909246548323883189840834535363201501369611282553774926283844301230570643032765662366251688084662186752037468895782488625871734784832944650741834099051003653834790497388310983459874121897497736981794902485";
+    String ID_as_SK = "6901667324908847928489205893551555745420351593471848513172770765243309290043117452428963943921309042943393806423672287808485331897408796330501606549171403661079735598685882487064353513044074171915483160442879545600025425999832860346139589536246914375141337794768147811056603893773363875876725356190300868212565685844233981770145413171885929101382291989203265881631353655297461791497418329519708520781888123775664909246548323883189840834535363201501369611282553774926283844301230570643032765662366251688084662186752037468895782488625871734784832944650741834099051003653834790497388310983459874121897497736981794902485";//私钥d
     Date TS;
     String Lifetime = "0000000001000";
 
-    public String[] parse_client(String message){
+    // C ------>>>>>>  AS
+
+    public String client_to_as(String ID_c, String ID_tgs,Date TS1){
+        String message;
+
+        TS1 = new Date();
+        message = ID_c + ID_tgs + TS1.getTime();
+
+        return  message;
+    }
+
+    public String[] as_parse_client(String message){
         String []result;
         if(message.length()==4){
             result = new String[1];
         }
-        else {
+        else {//注意判断message为空、长度是不是等于规定的报文长度
             result = new String[3];
             String ID_tgs = message.substring(4,6);
             String TS1 = message.substring(6,19);
@@ -32,29 +44,19 @@ public class Kerberos {
         return result;
     }
 
-    public String client_to_as(String ID_c, String ID_tgs,Date TS1){
-        String message;
-
-        TS1 = new Date();
-        message = ID_c + ID_tgs + TS1.getTime();
-
-        return  message;
-    }
-
-    //ID_key用户口令
-    public String as_to_client(String ID_key,String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
+    public String as_to_client(String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
         String message;
 
         TS_2 = new Date();
         message = K_c_tgs + ID_tgs + TS_2.getTime() + Lifetime_2 + Ticket_tgs;
-        DES des = new DES(ID_key);
+        DES des = new DES("abcdefg");
 
-        System.out.println("明文是："+message);
+        System.out.println("AS发给Client的明文是："+message);
         message = des.encrypt_string(message);
         return  message;
     }
 
-    public String get_Ticket_tgs(){
+    public String get_Ticket_tgs(){//当client访问as后返回Ticket_tgs 就把它存起来  当client访问tgs的时候再调用
         String message;
         String K_tgs = "tgsmima";
         String K_c_tgs = "1234567";
@@ -82,22 +84,21 @@ public class Kerberos {
      * 解析AS发给Client的报文message
      * 把Message解析到入口参数K_c_tgs || ID_tgs || TS_2 || Lifetime_2 || Ticket_tgs
      */
-    public String[] client_parse_as(String message){
+    public String[] client_parse_as(String message){//注意判断message为空、长度大于0   注意加密后的报文长度不固定
         String parse[] = new String[5];
-        //界面输入的口令
         DES des = new DES("abcdefg");
         message = des.decrypt_string(message);
-        System.out.println(message);
+        System.out.println("Client解密AS传来的报文:K_c_tgs || ID_tgs || TS_2 || Lifetime_2 || Ticket_tgs"+ message);
         parse[0] = message.substring(0,7);
         parse[1] = message.substring(7,9);
         parse[2] = message.substring(9,22);
         parse[3] = message.substring(22,35);
-        parse[4] = message.substring(35,35+51);
+        parse[4] = message.substring(35,message.length());
         DES des1 = new DES("tgsmima");
         String enTicket = message.substring(35,message.length());
-        System.out.println("enticket is:"+enTicket);
+        System.out.println("解密前的ticket_tgs is:"+enTicket);
         String Ticket = des1.decrypt_string(enTicket);
-        System.out.println("ticket is:"+Ticket);
+        System.out.println("解密后的ticket_tgs is:"+Ticket);
         return parse;
     }
 
@@ -116,11 +117,15 @@ public class Kerberos {
         bigInteger_sk[1] = new BigInteger(ID_as_SK);
         RSA rsa = new RSA(bigInteger_pk,bigInteger_sk);
         String C = rsa.sign_string(AS_PK);
-        //加密
+        //签名
         return C;
     }
 
-    //验证证书
+    /**
+     * 验证证书
+     * @param Certification
+     * @return 公钥 e d
+     */
     public String parse_Certification(String Certification){
         String []result = new String[3];
         result = Certification.split(" ");
@@ -184,16 +189,161 @@ public class Kerberos {
         String []user = new String[2];
         user[0] = decrpt_information.substring(0,4);
         user[1] =  decrpt_information.substring(4);
-
-        DB db = new DB();
-        db.getConnection();
-        if(db.tianjia(user[0],user[1])){
-            System.out.println("add successfully!");
-        }
-        else{
-            System.out.println("add false!");
-        }
         return user;
+    }
+
+    // C ------>>>>>>  TGS
+
+    /**
+     * Client 向TGS申请 获取服务许可票据
+     */
+    public String client_to_tgs(String ID_v,String Ticket_tgs,String Authenticator_c){
+        String message;
+        message = ID_v +" " + Ticket_tgs +" "+ Authenticator_c;
+        return  message;
+    }
+
+    /**
+     * TGS 解析 从Client发过来的请求报文
+     * 把Message解析到Stirng[], String数组元素为：ID_v || Ticket_tgs || Authenticator_c
+     */
+    public String[] tgs_parse_client(String message){
+        String []result;
+        if(message.length()>0){
+            result = message.split(" ");
+        } else {
+            result = new String[1];
+        }
+        return result;
+    }
+
+    /**
+     * TGS 向Client发送服务许可票据报文
+     */
+    public String tgs_to_client(String K_c_v,String ID_v,Date TS_4,String Ticket_v){
+        String message;
+        TS_4 = new Date();
+        message = K_c_v + ID_v + TS_4.getTime() + Ticket_v;
+        DES des = new DES("abcdefg");//K_c_tgs
+        System.out.println("TGS发给Client的明文是："+message);
+        message = des.encrypt_string(message);
+        return  message;
+    }
+
+    /**
+     * Client 从TGS返回的报文中解析出服务许可票据
+     * 把Message解析到Stirng[], String数组元素为：K_c_v || IDv || TS_4 || Ticket_v
+     */
+    public String[] client_parse_tgs(String message){
+        String parse[] = new String[5];
+        DES des = new DES("abcdefg");
+        message = des.decrypt_string(message);
+        System.out.println("Client解密TGS传来的报文:K_c_v || IDv || TS_4 || Ticket_v "+ message);
+        parse[0] = message.substring(0,7);
+        parse[1] = message.substring(7,9);
+        parse[2] = message.substring(9,22);
+        parse[3] = message.substring(22,message.length());
+        DES des1 = new DES("vvvmima");
+        String enTicket = message.substring(22,message.length());
+        System.out.println("解密前的ticket_v is:"+enTicket);
+        String Ticket = des1.decrypt_string(enTicket);
+        System.out.println("解密后的ticket_v is:"+Ticket);
+        return parse;
+    }
+
+    public String get_Ticket_v(){  //暂时用这个，写完后用标准的有参数函数
+        String message;
+        String K_v = "vvvmima";
+        String K_c_v = "1234567";
+        String ID_c = "0001";
+        String AD_c = "192168000001";
+        long TS_4 = new Date().getTime();
+        DES des = new DES(K_v);
+        message = des.encrypt_string(K_c_v + ID_c + AD_c + ID_v + TS_4 + Lifetime);
+        return message;
+    }
+
+    /**
+     * 生成服务许可票据Ticket_v
+     */
+    public String get_Ticket_v(String K_v,String K_c_v,String ID_c,String AD_c,String ID_v,Date TS_4,String Lifetime_4){
+        String message;
+        DES des = new DES(K_v);
+        TS_4 = new Date();
+        message = des.encrypt_string(K_c_v + ID_c + AD_c + ID_v + TS_4.getTime() + Lifetime);
+        return message;
+    }
+
+    public String get_Authenticator_c(){  //暂时用这个，写完后用标准的有参数函数
+        String message;
+        String K_c_tgs = "1234567";
+        String AD_c = "192168000001";
+        long TS_3 = new Date().getTime();
+        DES des = new DES(K_c_tgs);
+        message = des.encrypt_string(ID_tgs + AD_c + TS_3);
+        return message;
+    }
+
+    /**
+     * Client经过AS生成认证消息AuthenticatorC(TS_3)   Client经过TGS生成认证消息AuthenticatorC(TS_5)
+     */
+    public String get_Authenticator_c(String K_c_tgs,String ID_c,String AD_c,Date TS_3){
+        String message;
+        DES des = new DES(K_c_tgs);
+        TS_3 = new Date();
+        message = des.encrypt_string(ID_tgs + AD_c + TS_3.getTime());
+        return message;
+    }
+
+    // C ------>>>>>>  Server V
+
+    /**
+     * Client 向Server V 获取服务
+     */
+    public String client_to_v(String Ticket_v,String Authenticator_c){
+        String message;
+        message = ID_v + " "+ Ticket_v +" "+ Authenticator_c;
+        return  message;
+    }
+
+    /**
+     * Server V 解析 从Client发过来的请求报文
+     * 把Message解析到Stirng[], String数组元素为：IDv || Ticket_v || Authenticator_c
+     */
+    public String[] v_parse_client(String message){
+        String []result;
+        if(message.length()>0){
+            result = message.split(" ");
+        } else {
+            result = new String[1];
+        }
+        return result;
+    }
+
+    /**
+     * Server V 向Client发送相互认证报文
+     */
+    public String v_to_client(String K_c_v,Date TS_5){
+        String message;
+        TS_5 = new Date();
+        message = String.valueOf(TS_5.getTime());
+        DES des = new DES("abcdefg");//K_c_v
+        System.out.println("V发给Client的明文是："+message);
+        message = des.encrypt_string(message);
+        return  message;
+    }
+
+    /**
+     * Client 从Server V返回的报文中解析出相互认证报文
+     * 把Message解析到Stirng[], String数组元素为：TS_5 + 1
+     */
+    public String[] client_parse_v(String message){
+        String parse[] = new String[1];
+        DES des = new DES("abcdefg");
+        message = des.decrypt_string(message);
+        System.out.println("Client解密V传来的报文:TS_5 + 1:"+ message);
+        parse[0] = message;
+        return parse;
     }
 
 }

@@ -9,7 +9,7 @@ import java.util.Date;
 public class server {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8888);
-        System.out.println("server start at:" + new Date());
+        System.out.println("AS server start at:" + new Date());
         Mythread a = new Mythread();
         while (true) {
             Socket socket = serverSocket.accept();
@@ -35,15 +35,11 @@ public class server {
                     String receive = input.readUTF(); //接收数据
 
                     Kerberos kerberos = new Kerberos();
-                    String []result = kerberos.parse_client(receive);
+                    String []result = kerberos.as_parse_client(receive);
                     System.out.println(receive);
-                    DB db = new DB();
-                    db.getConnection();
-                    String chazhao = db.chazhao(result[0]);
-
-                    if(chazhao!=null){  //数据库查询ID判断
-                        //判断成功，as调用Kerberos类中函数，返回加密后报文
-                        output.writeUTF(kerberos.as_to_client(chazhao,"1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
+                    if(result[0].equals("0001")){  //数据库查询ID判断
+                        //判断成功，AS调用Kerberos类中函数，返回加密后报文
+                        output.writeUTF(kerberos.as_to_client("1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
                     }
                     else if(result[0].equals("0000")){
                         //返回证书
@@ -63,6 +59,7 @@ public class server {
                     else{
                         //数据库查询失败，返回出错码0000，不存在数据库中
                         output.writeUTF("0000");
+                        System.out.println("Error: Client 访问 AS失败，不存在此IDc:"+result[0]);
                     }
                     output.flush();
                     socket.shutdownOutput();
