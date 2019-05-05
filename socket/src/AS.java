@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
 
-public class server {
+public class AS {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8888);
         System.out.println("AS server start at:" + new Date());
@@ -37,9 +37,24 @@ public class server {
                     Kerberos kerberos = new Kerberos();
                     String []result = kerberos.as_parse_client(receive);
                     System.out.println(receive);
+                    String ID_C = result[0];
+                    String[] AD_C_array = address.getHostAddress().split("\\.");
+                    String AD_C = "";
+                    for(int i=0; i<AD_C_array.length; i++){
+                        while(AD_C_array[i].length()<3){
+                            AD_C_array[i] = "0" + AD_C_array[i];
+                        }
+                        AD_C += AD_C_array[i];
+                    }
+                    System.out.println("Client 的地址："+ AD_C);
+                    String k_c_tgs = "1234567";//当生命周期过后要换密钥 K_c_tgs
+
+
                     if(result[0].equals("0001")){  //数据库查询ID判断
                         //判断成功，AS调用Kerberos类中函数，返回加密后报文
-                        output.writeUTF(kerberos.as_to_client("1234567",kerberos.ID_tgs,kerberos.TS,kerberos.Lifetime,kerberos.get_Ticket_tgs()));
+                        Date TS2 = new Date();
+                        output.writeUTF(kerberos.as_to_client(k_c_tgs,kerberos.ID_tgs,TS2,kerberos.Lifetime,kerberos.
+                                get_Ticket_tgs("",k_c_tgs,ID_C,AD_C,kerberos.ID_tgs,TS2,kerberos.Lifetime)));
                     }
                     else if(result[0].equals("0000")){
                         //返回证书
