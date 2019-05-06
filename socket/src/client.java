@@ -1,3 +1,6 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,9 +17,7 @@ public class client {
     static Socket socket = null;
     static DataOutputStream output = null;
     static DataInputStream input = null;
-
-    private static final String Log_File = "";
-
+    private static final Logger log = LogManager.getLogger(client.class);
 
     public static void connect() {
         try {
@@ -35,6 +36,7 @@ public class client {
             String receive = input.readUTF();  //接受信息
 
             System.out.println("Client收到AS的加密报文："+ receive);  //输出接受信息->在ui界面显示
+            log.info("Client收到AS的加密报文：" + receive);
             String[] result1 = kerberos.client_parse_as(receive);  //调用Kerberos类中解析函数
             String k_c_tgs = result1[0];
             String Ticket_tgs = result1[4];  //未解密的ticket_tgs  只有TGS可以解开
@@ -49,9 +51,11 @@ public class client {
             output2.writeUTF(message2);//发送信息
             String receive2 = input2.readUTF();  //接受信息
             System.out.println("Client收到TGS的加密报文："+ receive2);  //输出接受信息->在ui界面显示
+            log.info("Client收到TGS的加密报文：" + receive2);
             String[] result2 = null;
             if(receive2.substring(0,4).equals("0000")){
                 System.out.println("Error: Client 接收到错误信息0000");
+                log.error("Client 接受TGS 信息为错误信息0000");
             }else {
                 result2 = kerberos.client_parse_tgs(k_c_tgs, receive2);  //调用Kerberos类中解析函数
             }
@@ -67,9 +71,11 @@ public class client {
             output3.writeUTF(message3);//发送信息
             String receive3 = input3.readUTF();  //接受信息
             System.out.println("Client收到Server V的加密报文："+ receive3);  //输出接受信息->在ui界面显示
+            log.info("Client收到Server V的加密报文："+ receive3);
             String[] result3 = null;
             if(receive3.substring(0,4).equals("0000")){
                 System.out.println("Error: Client 接收到错误信息0000");
+                log.error("Client 接受Server V 信息为错误信息0000");
             }else {
                 result3 = kerberos.client_parse_v(k_c_v, receive3);  //调用Kerberos类中解析函数
                 String TS6 = result3[0];
@@ -79,8 +85,10 @@ public class client {
                 System.out.println("TS6:" + TS6);
                 if(TS6.equals(String.valueOf(TS5.getTime()+1))){
                     System.out.println("Client 与 Server V 认证成功，开始提供聊天室服务......");
+                    log.info("Client 与 Server V 认证成功，开始提供聊天室服务");
                 }else {
                     System.out.println("认证失败: TS5 不符合 ，Log时间:" + new Date());
+                    log.error("认证失败: TS5 不符合");
                 }
             }
 

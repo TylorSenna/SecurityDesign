@@ -1,3 +1,6 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,15 +24,16 @@ public class TGS {
 }
 class TGSthread  implements Runnable{
     Socket socket;
+    private static final Logger log = LogManager.getLogger(TGS.class);
     public void setSocket(Socket socket){
         this.socket = socket;
     }
     @Override
     public void run(){
-        //System.out.println(1);
         try {
             InetAddress address = socket.getInetAddress();
             System.out.println("connected with address:"+address.getHostAddress());
+            log.info("TGS connected with address:"+address.getHostAddress());
             DataInputStream input = new DataInputStream(socket.getInputStream());
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
             String receive = input.readUTF(); //接收数据
@@ -37,6 +41,7 @@ class TGSthread  implements Runnable{
             Kerberos kerberos = new Kerberos();
             String []result = kerberos.tgs_parse_client(receive);
             System.out.println("TGS 接收到 Client的报文: "+ receive);
+            log.info("TGS 接收到 Client的报文: "+ receive);
             String k_c_v = "1234567";//当生命周期过后要换密钥 K_c_v
             String Ticket_tgs = result[1];
             DES des = new DES("tgsmima"); //K_TGS
@@ -55,6 +60,7 @@ class TGSthread  implements Runnable{
                 //数据库查询失败，返回出错码0000，不存在数据库中
                 output.writeUTF("0000");
                 System.out.println("Error: Client 访问 TGS失败");
+                log.error("Client 访问 TGS失败");
             }
             output.flush();
             socket.shutdownOutput();

@@ -1,3 +1,6 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -22,6 +25,7 @@ public class V {
 
 class Vthread  implements Runnable{
     Socket socket;
+    private static final Logger log = LogManager.getLogger(V.class);
     public void setSocket(Socket socket){
         this.socket = socket;
     }
@@ -31,6 +35,7 @@ class Vthread  implements Runnable{
         try {
             InetAddress address = socket.getInetAddress();
             System.out.println("connected with address:"+address.getHostAddress());
+            log.info("Server V connected with address:"+address.getHostAddress());
             DataInputStream input = new DataInputStream(socket.getInputStream());
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
             String receive = input.readUTF(); //接收数据
@@ -38,6 +43,7 @@ class Vthread  implements Runnable{
             Kerberos kerberos = new Kerberos();
             String []result = kerberos.v_parse_client(receive);   //要在这里解析出数据Authenticator_c中的TS5
             System.out.println("Server V 接收到 Client的报文: "+ receive);
+            log.info("Server V 接收到 Client的报文: "+ receive);
             String Ticket_v = result[1];
             DES des = new DES("vvvmima"); //K_V
             String Ticket_v_decrypt = des.decrypt_string(Ticket_v);
@@ -46,7 +52,7 @@ class Vthread  implements Runnable{
             String Authenticatorc = des2.decrypt_string(result[2]);
             String TS5_string = Authenticatorc.substring(16,29);
             System.out.println("Server V 接收到的TS_5_to_time:" + TS5_string);
-
+            log.info("Server V 接收到的TS_5_to_time:" + TS5_string);
             if(result[0].equals("02")){  //数据库查询ID判断
                 //判断成功，V调用Kerberos类中函数，返回加密后报文
                 output.writeUTF(kerberos.v_to_client(k_c_v,TS5_string));
@@ -55,6 +61,7 @@ class Vthread  implements Runnable{
                 //数据库查询失败，返回出错码0000，不存在数据库中
                 output.writeUTF("0000");
                 System.out.println("Error: Client 访问 Server V失败");
+                log.error(" Client 访问 Server V失败");
             }
             output.flush();
             socket.shutdownOutput();

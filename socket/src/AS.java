@@ -1,3 +1,6 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,22 +24,24 @@ public class AS {
 }
     class Mythread  implements Runnable{
         Socket socket;
+        private static final Logger log = LogManager.getLogger(AS.class);
         public void setSocket(Socket socket){
             this.socket = socket;
         }
         @Override
         public void run(){
-            //System.out.println(1);
                 try {
                     InetAddress address = socket.getInetAddress();
                     System.out.println("connected with address:"+address.getHostAddress());
+                    log.info("connected with address:"+address.getHostAddress());
                     DataInputStream input = new DataInputStream(socket.getInputStream());
                     DataOutputStream output = new DataOutputStream(socket.getOutputStream());
                     String receive = input.readUTF(); //接收数据
 
                     Kerberos kerberos = new Kerberos();
                     String []result = kerberos.as_parse_client(receive);
-                    System.out.println(receive);
+                    System.out.println("AS 接收到 Client的报文"+ receive);
+                    log.info("AS 接收到 Client的报文"+ receive);
                     String ID_C = result[0];
                     String[] AD_C_array = address.getHostAddress().split("\\.");
                     String AD_C = "";
@@ -47,6 +52,7 @@ public class AS {
                         AD_C += AD_C_array[i];
                     }
                     System.out.println("Client 的地址："+ AD_C);
+                    log.info("Client 的地址："+ AD_C);
                     String k_c_tgs = "1234567";//当生命周期过后要换密钥 K_c_tgs
 
 
@@ -62,12 +68,13 @@ public class AS {
 
                         String user_information_encrpt = input.readUTF();
                         System.out.println("user_information_encrpt:"+user_information_encrpt);
-
+                        log.info("user_information_encrpt:"+user_information_encrpt);
                         String []user_information = kerberos.parse_client_id_key(user_information_encrpt);
 
                         System.out.println("user_id:"+user_information[0]);
                         System.out.println("user_key:"+user_information[1]);
-
+                        log.debug("user_id:"+user_information[0]);
+                        log.debug("user_key:"+user_information[1]);
                         //receive = input.readUTF();
                         //调用插入数据库操作
                     }
@@ -75,6 +82,7 @@ public class AS {
                         //数据库查询失败，返回出错码0000，不存在数据库中
                         output.writeUTF("0000");
                         System.out.println("Error: Client 访问 AS失败，不存在此IDc:"+result[0]);
+                        log.error("Client 访问 AS失败，不存在此IDc:"+result[0]);
                     }
                     output.flush();
                     socket.shutdownOutput();
