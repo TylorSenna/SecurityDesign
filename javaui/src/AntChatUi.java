@@ -5,16 +5,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
+import static java.lang.Thread.sleep;
 
 public class AntChatUi {
-    public static JFrame frame = new JFrame("物联网安全课程设计");
+    public JFrame frame = new JFrame("物联网安全课程设计");
     public static final int roomwidth=700;//认证过程的窗口宽高
     public static final int roomheight=630;
-
     /*
     * 判断是否为整数
     * @param str 传入的字符串
@@ -22,7 +24,7 @@ public class AntChatUi {
     */
 
 
-    public static boolean isInteger(String str) {
+    public boolean isInteger(String str) {
         Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
         return pattern.matcher(str).matches();
     }
@@ -32,7 +34,7 @@ public class AntChatUi {
     * @param panel 传入的界面
     * @return 返回定位以后的界面
     */
-    public static void resetFrame(int curWidth,int curHeight)
+    public void resetFrame(int curWidth, int curHeight)
     {
         // Setting the width and height of frame
         frame.setSize(roomwidth, roomheight);
@@ -48,7 +50,7 @@ public class AntChatUi {
     }
 
 
-    public static void chatroom() {
+    public void chatroom() {
         // 创建 JFrame 实例
 
         resetFrame(roomwidth,roomheight);
@@ -76,15 +78,18 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public static void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name,BackgroundClient client)
+    public void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name,BackgroundClient client)
     {
         //监听关闭窗口的事件
-        addWindowListener(new WindowAdapter() {
+        frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-
+                try {
+                    client.UserExit();
+                } catch (IOException e1) {
+                    System.out.println("发送退出报文出错");
+                }
             }
-
         });
 
         try {
@@ -106,7 +111,6 @@ public class AntChatUi {
         //默认的设置是超过文本框才会显示滚动条，以下设置让滚动条一直显示
         jsp0.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         panel.add(jsp0);
-        client.StartThread();
         /*
          * 创建文本域用于用户输入
          */
@@ -155,9 +159,10 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public static void inputFunname(JFrame frame,JPanel panel,JTextArea textarea1,JTextArea textarea2,JLabel OnlineLabel,JList<String> list) throws IOException {
+    public void inputFunname(JFrame frame, JPanel panel, JTextArea textarea1, JTextArea textarea2, JLabel OnlineLabel, JList<String> list) throws IOException {
         BackgroundClient client=new BackgroundClient();
         client.init();
+        client.StartThread();
         try {
             client.AquireList(list);
         } catch (InterruptedException e) {
@@ -180,7 +185,10 @@ public class AntChatUi {
             public void actionPerformed(ActionEvent arg0) {
                 // TODO Auto-generated method stub
                 try {
-                    if(client.RequestAnonymous(userText.getText())==true)
+                    if(userText.getText().equals("")){
+                        JOptionPane.showMessageDialog(null, "不能为空!");
+                    }
+                    else if(client.RequestAnonymous(userText.getText())==true)
                     {
                         JOptionPane.showMessageDialog(null, "OK!");
                         String name=userText.getText();
@@ -207,7 +215,7 @@ public class AntChatUi {
     }
 
 
-    private static void placeComponents(JFrame frame,JPanel panel) {
+    private void placeComponents(JFrame frame,JPanel panel) {
         /*
          * 这边设置布局为 null
          */
@@ -341,7 +349,6 @@ public class AntChatUi {
         panel.add(jl2);
 
     }
-
 
 
 
