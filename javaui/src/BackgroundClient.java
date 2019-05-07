@@ -40,7 +40,7 @@ public class BackgroundClient {
     public void init() throws IOException {
         selector = Selector.open();
         //连接远程主机的IP和端口
-        sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", port));
+        sc = SocketChannel.open(new InetSocketAddress("192.168.43.196", port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
     }
@@ -249,6 +249,9 @@ public class BackgroundClient {
         String type0=message.substring(0,4);
         int type=Integer.parseInt(type0);
         if(type == USER_SEND){
+            if(name.length()==0){
+                return true;
+            }
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
@@ -257,6 +260,7 @@ public class BackgroundClient {
             chattextarea.setText(str+"\n"+info);
             chattextarea.setCaretPosition(chattextarea.getText().length());
             sk.interestOps(SelectionKey.OP_READ);
+            return true;
         }
         else if(type == USER_EXIST){
             name="";
