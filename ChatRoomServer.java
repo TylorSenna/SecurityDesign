@@ -205,7 +205,7 @@ public class ChatRoomServer {
             String info=message.substring(12,12+length);
             String hash=message.substring(12+length);
             if(users.contains(info)) {
-                sc0.write(charset.encode(PackageMessage("",USER_EXIST)));
+                sc0.write(charset.encode(PackageMessage("the name exist",USER_EXIST)));
             }
             else{
                 users.add(info);
@@ -230,37 +230,45 @@ public class ChatRoomServer {
         */
     public static String PackageMessage(String message,int type)
     {
+        String hash="0000000000";
         String str=""+message;
         int len=message.length();
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
+            str=str+hash;
             return str;
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
+            str=str+hash;
             return str;
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
+            str=str+hash;
             return str;
         }else{
             return str;

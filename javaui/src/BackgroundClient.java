@@ -191,37 +191,45 @@ public class BackgroundClient {
     */
     public String PackageMessage(String message,int type)
     {
+        String hash="0000000000";
         String str=""+message;
         int len=message.length();
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
+            str=str+hash;
             return str;
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
+            str=str+hash;
             return str;
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
+            str=str+hash;
             return str;
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
+            str=str+hash;
             return str;
         }else{
             return str;
@@ -254,42 +262,80 @@ public class BackgroundClient {
             }
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
-            String str=chattextarea.getText();
-            chattextarea.setText(str+"\n"+info);
-            chattextarea.setCaretPosition(chattextarea.getText().length());
-            sk.interestOps(SelectionKey.OP_READ);
+            if(length>0){
+                String info=message.substring(12,12+length);
+                String str=chattextarea.getText();
+                chattextarea.setText(str+"\n"+info);
+                chattextarea.setCaretPosition(chattextarea.getText().length());
+                sk.interestOps(SelectionKey.OP_READ);
+            }
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             return true;
         }
         else if(type == USER_EXIST){
+            String len=message.substring(4,12);
+            int length=Integer.parseInt(len);
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             name="";
+            sym=-1;
             return false;
         }
         else if(type == USER_REGIST_SUCC){
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             System.out.println(info);
             sym=1;
             name=info;
             return true;
         }
         else if(type == USER_LOGIN){
+            String len=message.substring(4,12);
+            int length=Integer.parseInt(len);
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             AquireList(list);
             return true;
         }
         else if(type == USER_EXIT){
+            String len=message.substring(4,12);
+            int length=Integer.parseInt(len);
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             AquireList(list);
             return true;
         }
         else if(type == USER_LIST){
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
-            UntagList(list,info);
+            if(length>0){
+                String info=message.substring(12,12+length);
+                UntagList(list,info);
+            }
+            String hash=message.substring(12+length,12+length+10);
+            if(message.length()>12+length+10){
+                String remain=message.substring(12+length+10);
+                unPackage(remain);
+            }
             return true;
         }
         return false;

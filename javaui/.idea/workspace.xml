@@ -16,7 +16,7 @@
         <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="45">
-              <caret line="251" column="37" lean-forward="true" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
+              <caret line="251" column="37" lean-forward="false" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -27,8 +27,8 @@
       <file leaf-file-name="BackgroundClient.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="83">
-              <caret line="283" column="47" lean-forward="true" selection-start-line="283" selection-start-column="47" selection-end-line="283" selection-end-column="47" />
+            <state relative-caret-position="786">
+              <caret line="275" column="13" lean-forward="true" selection-start-line="275" selection-start-column="13" selection-end-line="275" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -401,12 +401,12 @@
       <workItem from="1556985286037" duration="12092000" />
       <workItem from="1557072173318" duration="18560000" />
       <workItem from="1557159086354" duration="801000" />
-      <workItem from="1557205234120" duration="5851000" />
+      <workItem from="1557205234120" duration="9534000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="118790000" />
+    <option name="totallyTimeSpent" value="122473000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="7" />
@@ -734,7 +734,7 @@
     <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="45">
-          <caret line="251" column="37" lean-forward="true" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
+          <caret line="251" column="37" lean-forward="false" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -743,8 +743,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="83">
-          <caret line="283" column="47" lean-forward="true" selection-start-line="283" selection-start-column="47" selection-end-line="283" selection-end-column="47" />
+        <state relative-caret-position="786">
+          <caret line="275" column="13" lean-forward="true" selection-start-line="275" selection-start-column="13" selection-end-line="275" selection-end-column="13" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
