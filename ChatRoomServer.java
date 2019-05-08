@@ -1,3 +1,5 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,6 +25,7 @@ import java.util.Set;
  */
 public class ChatRoomServer {
 
+    private static final Logger log = LogManager.getLogger(ChatRoomServer.class);
     private static Selector selector = null;
     static final int port = 9999;
     private static Charset charset = Charset.forName("UTF-8");
@@ -37,11 +40,12 @@ public class ChatRoomServer {
     private static int USER_EXIT = 1000;
     private static int USER_SEND = 1001;
     private static int USER_LOGIN = 1002;
+    private static String USER_VERIFY = "1007";
+
     private static String USER_CONTENT_SPILIT = "#@#";
-    private static String SessionKey="abcdefg";
     private SocketChannel sc0;
 
-    public static HashMap<SocketChannel,String> map = new HashMap<>();//数据字典
+    public static HashMap<SocketChannel,String> map = new HashMap<>();//数据字典,通道与sessionkey
 
     private static boolean flag = false;
 
@@ -119,7 +123,7 @@ public class ChatRoomServer {
         }
     }
     /*
-    *将当前在线的用户列表返回
+     *将当前在线的用户列表返回
      */
     public static void SendList(SocketChannel sc) throws IOException {
         Iterator<String> iterator = users.iterator();
@@ -130,7 +134,8 @@ public class ChatRoomServer {
             message+=USER_CONTENT_SPILIT;
             System.out.println(message);
         }
-        sc.write(charset.encode(PackageMessage(message,USER_LIST)));
+        DES des = new DES(map.get(sc));
+        sc.write(charset.encode(des.encrypt_string(PackageMessage(message,USER_LIST))));
     }
     //TODO 要是能检测下线，就不用这么统计了
     public static int OnlineNum(Selector selector) {
@@ -164,18 +169,41 @@ public class ChatRoomServer {
                 SocketChannel dest = (SocketChannel)targetchannel;
 
                 //String name =
+                DES des = new DES(map.get(dest));
 
-                dest.write(charset.encode(content));
+                dest.write(charset.encode(des.encrypt_string(content)));
             }
         }
     }
 
 
     /*
-    *将消息解封
-    */
+     *将消息解封
+     */
     public boolean unPackage(String message) throws IOException {
-        DES d=new DES(SessionKey);
+        String typ=message.substring(0,4);
+        if(typ.equals(USER_VERIFY)){
+            String receive = message.substring(4);
+            Kerberos kerberos = new Kerberos();
+            String []result = kerberos.v_parse_client(receive);   //要在这里解析出数据Authenticator_c中的TS5
+            System.out.println("Server V 接收到 Client的报文: "+ receive);
+            log.info("Server V 接收到 Client的报文: "+ receive);
+            String Ticket_v = result[1];
+            DES des = new DES("vvvmima"); //K_V
+            String Ticket_v_decrypt = des.decrypt_string(Ticket_v);
+            String k_c_v = Ticket_v_decrypt.substring(0,7);//session_key
+            DES des2 = new DES(k_c_v); //K_c_v
+            String Authenticatorc = des2.decrypt_string(result[2]);
+            String TS5_string = Authenticatorc.substring(16,29);
+            System.out.println("Server V 接收到的TS_5_to_time:" + TS5_string);
+            log.info("Server V 接收到的TS_5_to_time:" + TS5_string);
+
+            map.put(sc0,k_c_v);//将通道与sessionkey对应
+
+            sc0.write(charset.encode(kerberos.v_to_client(k_c_v,TS5_string)));
+            return false;
+        }
+        DES d=new DES(map.get(sc0));
         message=d.decrypt_string(message);
         String type0=message.substring(0,4);
         int type=Integer.parseInt(type0);
@@ -208,14 +236,13 @@ public class ChatRoomServer {
             String info=message.substring(12,12+length);
             String hash=message.substring(12+length);
             if(users.contains(info)) {
-                sc0.write(charset.encode(PackageMessage("the name exist",USER_EXIST)));
+                DES des = new DES(map.get(sc0));
+                sc0.write(charset.encode(des.encrypt_string(PackageMessage("the name exist",USER_EXIST))));
             }
             else{
                 users.add(info);
-                sc0.write(charset.encode(PackageMessage(info,USER_REGIST_SUCC)));
-
-                map.put(sc0,info);//将通道与名字对应
-
+                DES des = new DES(map.get(sc0));
+                sc0.write(charset.encode(des.encrypt_string(PackageMessage(info,USER_REGIST_SUCC))));
                 System.out.println("name:"+info);
                 int num = OnlineNum(selector);
                 String mess = "welcome "+info+" to chat room! Online numbers:"+num;
@@ -229,12 +256,10 @@ public class ChatRoomServer {
     }
 
     /*
-        *将消息封装
-        */
+     *将消息封装
+     */
     public static String PackageMessage(String message,int type)
     {
-        System.out.println(message);
-        DES d=new DES(SessionKey);
         String hash="0000000000";
         String str=""+message;
         int len=message.length();
@@ -242,40 +267,41 @@ public class ChatRoomServer {
             str=IntToString(len)+str;
             str="1000"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
             str=str+hash;
-            return d.encrypt_string(str);
+            return str;
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
             str=str+hash;
-            return d.encrypt_string(str);
-        }else{
+            return str;
+        }
+        else{
             return str;
         }
 
