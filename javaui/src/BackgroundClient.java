@@ -28,8 +28,11 @@ public class BackgroundClient {
     private static int USER_EXIT = 1000;
     private static int USER_SEND = 1001;
     private static int USER_LOGIN = 1002;
+    private static int receive=1;
+    private static int send=0;
     private static String USER_CONTENT_SPILIT="#@#";
     private SelectionKey sk;
+    private String SessionKey="abcdefg";
     private JTextArea chattextarea;
     private JList<String> list;
     private JTextArea kerberostextarea;
@@ -40,7 +43,7 @@ public class BackgroundClient {
     public void init() throws IOException {
         selector = Selector.open();
         //连接远程主机的IP和端口
-        sc = SocketChannel.open(new InetSocketAddress("192.168.43.196", port));
+        sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
     }
@@ -77,13 +80,19 @@ public class BackgroundClient {
     /*
     *将界面接口赋值
      */
-    public void update(JTextArea chattextarea0,JTextArea kerberostextarea0,JTextArea datatextarea0)
+    public void update(JTextArea chattextarea0)
     {
         chattextarea=chattextarea0;
+
+    }
+    /*
+    *将界面接口赋值
+    */
+    public void update(JTextArea kerberostextarea0,JTextArea datatextarea0)
+    {
         kerberostextarea=kerberostextarea0;
         datatextarea=datatextarea0;
     }
-
     /*
     *重载用户进程代码
      */
@@ -191,46 +200,69 @@ public class BackgroundClient {
     */
     public String PackageMessage(String message,int type)
     {
+        DES d=new DES(SessionKey);
         String hash="0000000000";
         String str=""+message;
+        String result="";
         int len=message.length();
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_EXIT,send);
+            return result;
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_LOGIN,send);
+            return result;
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_SEND,send);
+            return result;
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_LIST,send);
+            return result;
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_REQUIRE,send);
+            return result;
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_REGIST_SUCC,send);
+            return result;
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
             str=str+hash;
-            return str;
+            result=d.encrypt_string(str);
+            UiTextAreaCiphertext(result,send);
+            UiTextAreaPlaintext(str,USER_EXIST,send);
+            return result;
         }else{
             return str;
         }
@@ -249,14 +281,41 @@ public class BackgroundClient {
     }
 
     /*
+        *判断字符串是否为纯数字
+        */
+    public static boolean isNumeric(String str)
+    {
+        for (int i = 0; i < str.length(); i++)
+        {
+            if (!Character.isDigit(str.charAt(i)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
+    /*
     *将消息解封
     */
     public boolean unPackage(String message) throws IOException, InterruptedException {
+        DES d=new DES(SessionKey);
+        UiTextAreaCiphertext(message,receive);
+        message=d.decrypt_string(message);
+        if(message.indexOf(0) >=0){
+            message = message.substring(0,message.indexOf(0));    //这一步很重要，由于在result中含有ascll码为0的值，导致转换为byte[]时出错，所以要先剔除掉0
+        }
         System.out.println(message);
-        System.out.println(message.length());
+        if(message.length()<4)
+            return false;
         String type0=message.substring(0,4);
+        if(!isNumeric(type0))
+            return false;
         int type=Integer.parseInt(type0);
         if(type == USER_SEND){
+            UiTextAreaPlaintext(message,USER_SEND,receive);
             if(name.length()==0){
                 return true;
             }
@@ -267,7 +326,6 @@ public class BackgroundClient {
                 String str=chattextarea.getText();
                 chattextarea.setText(str+"\n"+info);
                 chattextarea.setCaretPosition(chattextarea.getText().length());
-                sk.interestOps(SelectionKey.OP_READ);
             }
             String hash=message.substring(12+length,12+length+10);
             if(message.length()>12+length+10){
@@ -277,6 +335,7 @@ public class BackgroundClient {
             return true;
         }
         else if(type == USER_EXIST){
+            UiTextAreaPlaintext(message,USER_EXIST,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String hash=message.substring(12+length,12+length+10);
@@ -289,6 +348,7 @@ public class BackgroundClient {
             return false;
         }
         else if(type == USER_REGIST_SUCC){
+            UiTextAreaPlaintext(message,USER_REGIST_SUCC,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
@@ -297,12 +357,12 @@ public class BackgroundClient {
                 String remain=message.substring(12+length+10);
                 unPackage(remain);
             }
-            System.out.println(info);
             sym=1;
             name=info;
             return true;
         }
         else if(type == USER_LOGIN){
+            UiTextAreaPlaintext(message,USER_LOGIN,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String hash=message.substring(12+length,12+length+10);
@@ -314,6 +374,7 @@ public class BackgroundClient {
             return true;
         }
         else if(type == USER_EXIT){
+            UiTextAreaPlaintext(message,USER_EXIT,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String hash=message.substring(12+length,12+length+10);
@@ -325,7 +386,9 @@ public class BackgroundClient {
             return true;
         }
         else if(type == USER_LIST){
+            UiTextAreaPlaintext(message,USER_LIST,receive);
             String len=message.substring(4,12);
+
             int length=Integer.parseInt(len);
             if(length>0){
                 String info=message.substring(12,12+length);
@@ -340,4 +403,110 @@ public class BackgroundClient {
         }
         return false;
     }
+
+    /*
+    * 将字符串传入ui前端的数据交流区
+    * type  数据包的种类
+    * sor   发送还是接收
+    * */
+    private void UiTextAreaPlaintext(String text,int type,int sor)
+    {
+        text="  plaintext: "+text;
+        if(sor==receive){
+            if(type==USER_SEND){
+                text="(receive) "+text+"(用户接收的聊天消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_EXIST){
+                text="(receive) "+text+"(用户接收的申请的昵称已经存在的消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_REGIST_SUCC){
+                text="(receive) "+text+"(用户接收的申请昵称成功的消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_LIST){
+                text="(receive) "+text+"(用户接收的聊天室当前在线用户列表)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_EXIT){
+                text="(receive) "+text+"(用户接收的其他用户退出的消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_LOGIN){
+                text="(receive) "+text+"(用户接收的其他用户登陆的消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else{
+                return;
+            }
+        }
+        else{
+            if(type==USER_SEND){
+                text="(send)    "+text+"(用户发送的聊天消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_LIST){
+                text="(send)    "+text+"(用户发送的请求当前在线用户)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_EXIT){
+                text="(send)    "+text+"(用户发送的退出聊天室消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else if(type==USER_REQUIRE){
+                text="(send)    "+text+"(用户发送的请求用户名消息)";
+                String str=datatextarea.getText();
+                datatextarea.setText(str+"\n"+text);
+                datatextarea.setCaretPosition(datatextarea.getText().length());
+            }
+            else{
+                return;
+            }
+        }
+
+    }
+
+
+    /*
+    * 将字符串传入ui前端的数据交流区
+    * type  数据包的种类
+    * sor   发送还是接收
+    * */
+    private void UiTextAreaCiphertext(String text,int sor)
+    {
+        text="ciphertext: "+text;
+        if(sor==receive){
+            text="(receive) "+text;
+            String str=datatextarea.getText();
+            datatextarea.setText(str+"\n"+text);
+            datatextarea.setCaretPosition(datatextarea.getText().length());
+        }
+        else{
+            text="(send)    "+text;
+            String str=datatextarea.getText();
+            datatextarea.setText(str+"\n"+text);
+            datatextarea.setCaretPosition(datatextarea.getText().length());
+        }
+    }
+
+
 }

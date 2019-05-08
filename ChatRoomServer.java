@@ -38,6 +38,7 @@ public class ChatRoomServer {
     private static int USER_SEND = 1001;
     private static int USER_LOGIN = 1002;
     private static String USER_CONTENT_SPILIT = "#@#";
+    private static String SessionKey="abcdefg";
     private SocketChannel sc0;
 
     public static HashMap<SocketChannel,String> map = new HashMap<>();//数据字典
@@ -174,6 +175,8 @@ public class ChatRoomServer {
     *将消息解封
     */
     public boolean unPackage(String message) throws IOException {
+        DES d=new DES(SessionKey);
+        message=d.decrypt_string(message);
         String type0=message.substring(0,4);
         int type=Integer.parseInt(type0);
         if(type == USER_SEND){
@@ -230,6 +233,8 @@ public class ChatRoomServer {
         */
     public static String PackageMessage(String message,int type)
     {
+        System.out.println(message);
+        DES d=new DES(SessionKey);
         String hash="0000000000";
         String str=""+message;
         int len=message.length();
@@ -237,39 +242,39 @@ public class ChatRoomServer {
             str=IntToString(len)+str;
             str="1000"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
             str=str+hash;
-            return str;
+            return d.encrypt_string(str);
         }else{
             return str;
         }

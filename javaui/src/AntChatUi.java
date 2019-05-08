@@ -103,7 +103,7 @@ public class AntChatUi {
         //创建显示文字的区域
         JTextArea textarea0=new JTextArea();
         //将后台与前台ui连接
-        client.update(textarea0,jl1,jl2);
+        client.update(textarea0);
         JScrollPane jsp0 = new JScrollPane(textarea0);
         textarea0.setEditable(false);
         //设置矩形大小.参数依次为(矩形左上角横坐标x,矩形左上角纵坐标y，矩形长度，矩形宽度)
@@ -124,11 +124,11 @@ public class AntChatUi {
 
         sendButton.setBounds(185, 175, 80, 25);
         panel.add(sendButton);
-        jl1.setText("");
-        jl2.setText("");
-        jl2.setForeground(Color.red);
+        //jl2.setForeground(Color.red);
         jl2.setEditable(false);
-        jl2.setText(jl2.getText()+"haha\n");
+        //jl2.setText(jl2.getText()+"haha\n");
+        //jl2.setForeground(Color.blue);
+        //jl2.setText(jl2.getText()+"haha\n");
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -163,6 +163,7 @@ public class AntChatUi {
         BackgroundClient client=new BackgroundClient();
         client.init();
         client.StartThread();
+        client.update(textarea1,textarea2);
         try {
             client.AquireList(list);
         } catch (InterruptedException e) {

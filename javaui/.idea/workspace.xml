@@ -12,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="AntChatUi.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="AntChatUi.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="251" column="37" lean-forward="false" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
+            <state relative-caret-position="1995">
+              <caret line="107" column="37" lean-forward="true" selection-start-line="107" selection-start-column="37" selection-end-line="107" selection-end-column="37" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -24,13 +24,31 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BackgroundClient.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="BackgroundClient.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="786">
-              <caret line="275" column="13" lean-forward="true" selection-start-line="275" selection-start-column="13" selection-end-line="275" selection-end-column="13" />
+            <state relative-caret-position="7904">
+              <caret line="419" column="79" lean-forward="true" selection-start-line="419" selection-start-column="79" selection-end-line="419" selection-end-column="79" />
               <folding>
                 <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DES.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/DES.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="508" column="35" lean-forward="true" selection-start-line="508" selection-start-column="35" selection-end-line="508" selection-end-column="35" />
+              <folding>
+                <element signature="method#setIP#0;class#DES#0" expanded="false" />
+                <element signature="method#setIP_1#0;class#DES#0" expanded="false" />
+                <element signature="method#setS#0;class#DES#0" expanded="false" />
+                <element signature="method#setE#0;class#DES#0" expanded="false" />
+                <element signature="method#setPC_1#0;class#DES#0" expanded="false" />
+                <element signature="method#setPC_2#0;class#DES#0" expanded="false" />
+                <element signature="method#setP#0;class#DES#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -58,16 +76,20 @@
       <find>static</find>
       <find>updata</find>
       <find>update</find>
-      <find>chattextarea</find>
       <find>ClientThread</find>
-      <find>System</find>
       <find>USER_REQ</find>
       <find>window</find>
       <find>client</find>
       <find>USER_REGIS</find>
       <find>!!!!!!</find>
       <find>name</find>
+      <find>unPackage</find>
+      <find>System</find>
       <find>thread</find>
+      <find>chattextarea</find>
+      <find>upda</find>
+      <find>red</find>
+      <find>chattext</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -93,6 +115,7 @@
         <option value="$USER_HOME$/Desktop/AnonymousChat.java" />
         <option value="$USER_HOME$/Desktop/ChatRoomClient.java" />
         <option value="$PROJECT_DIR$/src/ChatRoomClient.java" />
+        <option value="$PROJECT_DIR$/src/DES.java" />
         <option value="$PROJECT_DIR$/src/AntChatUi.java" />
         <option value="$PROJECT_DIR$/src/BackgroundClient.java" />
       </list>
@@ -157,6 +180,9 @@
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\编程\javaui\src" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -401,12 +427,12 @@
       <workItem from="1556985286037" duration="12092000" />
       <workItem from="1557072173318" duration="18560000" />
       <workItem from="1557159086354" duration="801000" />
-      <workItem from="1557205234120" duration="9534000" />
+      <workItem from="1557205234120" duration="27595000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="122473000" />
+    <option name="totallyTimeSpent" value="140534000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="7" />
@@ -431,7 +457,7 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.26825634" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28614008" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -449,21 +475,11 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="2" />
+      <option name="time" value="3" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3040">
-          <caret line="175" column="0" lean-forward="false" selection-start-line="175" selection-start-column="0" selection-end-line="175" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/SwingLoginExample.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="171">
@@ -731,20 +747,36 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
+    <entry file="file://$PROJECT_DIR$/src/DES.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="251" column="37" lean-forward="false" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
+        <state relative-caret-position="75">
+          <caret line="508" column="35" lean-forward="true" selection-start-line="508" selection-start-column="35" selection-end-line="508" selection-end-column="35" />
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="method#setIP#0;class#DES#0" expanded="false" />
+            <element signature="method#setIP_1#0;class#DES#0" expanded="false" />
+            <element signature="method#setS#0;class#DES#0" expanded="false" />
+            <element signature="method#setE#0;class#DES#0" expanded="false" />
+            <element signature="method#setPC_1#0;class#DES#0" expanded="false" />
+            <element signature="method#setPC_2#0;class#DES#0" expanded="false" />
+            <element signature="method#setP#0;class#DES#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/BackgroundClient.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="786">
-          <caret line="275" column="13" lean-forward="true" selection-start-line="275" selection-start-column="13" selection-end-line="275" selection-end-column="13" />
+        <state relative-caret-position="7904">
+          <caret line="419" column="79" lean-forward="true" selection-start-line="419" selection-start-column="79" selection-end-line="419" selection-end-column="79" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/AntChatUi.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1995">
+          <caret line="107" column="37" lean-forward="true" selection-start-line="107" selection-start-column="37" selection-end-line="107" selection-end-column="37" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
