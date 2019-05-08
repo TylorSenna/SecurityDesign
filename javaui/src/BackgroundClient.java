@@ -526,37 +526,37 @@ public class BackgroundClient {
                 text="(receive) "+text+"(用户接收的聊天消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_EXIST){
                 text="(receive) "+text+"(用户接收的申请的昵称已经存在的消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_REGIST_SUCC){
                 text="(receive) "+text+"(用户接收的申请昵称成功的消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_LIST){
                 text="(receive) "+text+"(用户接收的聊天室当前在线用户列表)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_EXIT){
                 text="(receive) "+text+"(用户接收的其他用户退出的消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_LOGIN){
                 text="(receive) "+text+"(用户接收的其他用户登陆的消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else{
                 return;
@@ -567,25 +567,25 @@ public class BackgroundClient {
                 text="(send)    "+text+"(用户发送的聊天消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_LIST){
                 text="(send)    "+text+"(用户发送的请求当前在线用户)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_EXIT){
                 text="(send)    "+text+"(用户发送的退出聊天室消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else if(type==USER_REQUIRE){
                 text="(send)    "+text+"(用户发送的请求用户名消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
-                datatextarea.setCaretPosition(datatextarea.getText().length());
+                datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
             }
             else{
                 return;
@@ -607,13 +607,13 @@ public class BackgroundClient {
             text="(receive) "+text;
             String str=datatextarea.getText();
             datatextarea.setText(str+"\n"+text);
-            datatextarea.setCaretPosition(datatextarea.getText().length());
+            datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
         }
         else{
             text="(send)    "+text;
             String str=datatextarea.getText();
             datatextarea.setText(str+"\n"+text);
-            datatextarea.setCaretPosition(datatextarea.getText().length());
+            datatextarea.setCaretPosition(datatextarea.getText().length()-text.length());
         }
     }
 
