@@ -50,18 +50,8 @@ class TGSthread  implements Runnable{
             String ID_C = Ticket_tgs_decrypt.substring(7,11);
             String AD_C = Ticket_tgs_decrypt.substring(11,23);
             Date TS4 = new Date();
-
-            if(result[0].equals("02")){  //数据库查询ID判断
-                //判断成功，TGS调用Kerberos类中函数，返回加密后报文
-                output.writeUTF(kerberos.tgs_to_client(k_c_tgs,k_c_v,kerberos.ID_v,TS4,kerberos.
-                        get_Ticket_v("",k_c_v,ID_C,AD_C,kerberos.ID_v,TS4,kerberos.Lifetime)));
-            }
-            else{
-                //数据库查询失败，返回出错码0000，不存在数据库中
-                output.writeUTF("0000");
-                System.out.println("Error: Client 访问 TGS失败");
-                log.error("Client 访问 TGS失败");
-            }
+            output.writeUTF(kerberos.tgs_to_client(k_c_tgs,k_c_v,kerberos.ID_v,TS4,kerberos.
+                    get_Ticket_v("",k_c_v,ID_C,AD_C,kerberos.ID_v,TS4,kerberos.Lifetime)));
             output.flush();
             socket.shutdownOutput();
             socket.close();

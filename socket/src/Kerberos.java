@@ -60,7 +60,7 @@ public class Kerberos {
         String message;
         K_tgs = "tgsmima";
         DES des = new DES(K_tgs);
-        message = des.encrypt_string(K_c_tgs + ID_c + AD_c + ID_tgs + TS_2 + Lifetime);
+        message = des.encrypt_string(K_c_tgs + ID_c + AD_c + ID_tgs + TS_2.getTime() + Lifetime);
         return message;
     }
 
@@ -69,6 +69,11 @@ public class Kerberos {
      * 把Message解析到入口参数K_c_tgs || ID_tgs || TS_2 || Lifetime_2 || Ticket_tgs
      */
     public String[] client_parse_as(String message){//注意判断message为空、长度大于0   注意加密后的报文长度不固定
+        if(message.length() == 4){// AS回传0000 表示数据库没查到
+            String[] result = new String[1];
+            result[0] = message;
+            return result;
+        }
         String parse[] = new String[5];
         DES des = new DES("abcdefg");  //K_C
         message = des.decrypt_string(message);

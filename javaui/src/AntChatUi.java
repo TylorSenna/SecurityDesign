@@ -1,3 +1,6 @@
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -5,18 +8,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.Vector;
+import java.nio.channels.SocketChannel;
 import java.util.regex.Pattern;
 
-import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 import static java.lang.Thread.sleep;
 
 public class AntChatUi {
     public JFrame frame = new JFrame("物联网安全课程设计");
     public static final int roomwidth=700;//认证过程的窗口宽高
     public static final int roomheight=630;
+    private static final Logger log = LogManager.getLogger(AntChatUi.class);
     /*
     * 判断是否为整数
     * @param str 传入的字符串
@@ -78,7 +79,7 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public void Anonymousroom(JPanel panel,JTextArea jl1,JTextArea jl2,JLabel OnlineLabel,JList<String> list,String name,BackgroundClient client)
+    public void Anonymousroom(JPanel panel, JTextArea jl1, JTextArea jl2, JLabel OnlineLabel, JList<String> list, String name, BackgroundClient client)
     {
         //监听关闭窗口的事件
         frame.addWindowListener(new WindowAdapter() {
@@ -103,7 +104,7 @@ public class AntChatUi {
         //创建显示文字的区域
         JTextArea textarea0=new JTextArea();
         //将后台与前台ui连接
-        client.update(textarea0);
+        client.update(textarea0,jl1,jl2);
         JScrollPane jsp0 = new JScrollPane(textarea0);
         textarea0.setEditable(false);
         //设置矩形大小.参数依次为(矩形左上角横坐标x,矩形左上角纵坐标y，矩形长度，矩形宽度)
@@ -159,9 +160,7 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public void inputFunname(JFrame frame, JPanel panel, JTextArea textarea1, JTextArea textarea2, JLabel OnlineLabel, JList<String> list) throws IOException {
-        BackgroundClient client=new BackgroundClient();
-        client.init();
+    public void inputFunname(JFrame frame, JPanel panel, JTextArea textarea1, JTextArea textarea2, JLabel OnlineLabel, JList<String> list, BackgroundClient client) throws IOException {
         client.StartThread();
         client.update(textarea1,textarea2);
         try {
@@ -169,6 +168,7 @@ public class AntChatUi {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         /*
          * 创建文本域用于用户输入
          */
@@ -248,14 +248,12 @@ public class AntChatUi {
         //kerberos数据
         JLabel jl1 = new JLabel("--------------------------------------------------Kerberos认证过程----------------------------------------------\n");
 
-        JTextArea textarea1=new JTextArea(" "
-        );
+        JTextArea textarea1=new JTextArea(" ");
         textarea1.setEditable(false);
         //数据交流部分
         JLabel jl2 = new JLabel("----------------------------------------------------数据交流部分---------------------------------------------------");
 
-        JTextArea textarea2=new JTextArea(" "
-        );
+        JTextArea textarea2=new JTextArea(" ");
         textarea2.setEditable(false);
         //添加监听
         jb01.addActionListener(new ActionListener() {
@@ -267,7 +265,29 @@ public class AntChatUi {
                         new String(jpf01.getPassword()).trim().length()>=6&&
                         new String(jpf01.getPassword()).trim().length()<12) {
 
-                    JOptionPane.showMessageDialog(null, "验证成功！");
+                    boolean verify_result = false;
+                    BackgroundClient client=new BackgroundClient();
+                    client.kerberostextarea = textarea1;
+                    client.datatextarea = textarea2;
+                    try {
+                        client.init();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    try {
+                        verify_result = client.Verify();
+                    } catch (InterruptedException e3) {
+                        e3.printStackTrace();
+                    }
+                    if(verify_result){
+                        //认证成功
+                    }else {
+                        //认证失败
+                        log.error("Kerberos 认证失败, 无法提供聊天室服务!!!!!!");
+                        JOptionPane.showMessageDialog(null, "认证失败！");
+                        return;
+                    }
+                    JOptionPane.showMessageDialog(null, "认证成功！");
                     frame.setTitle("输入匿名昵称");
                     jl01.setVisible(false);
                     jl02.setVisible(false);
@@ -277,8 +297,8 @@ public class AntChatUi {
                     jtf01.setVisible(false);
                     jpf01.setVisible(false);
                     try {
-                        inputFunname(frame,panel,textarea1,textarea2,OnlineLabel,list);
-                    } catch (IOException e1) {
+                        inputFunname(frame,panel,textarea1,textarea2,OnlineLabel,list,client);
+                    } catch (Exception e1) {
                         e1.printStackTrace();
                     }
 
@@ -302,6 +322,12 @@ public class AntChatUi {
                 // TODO Auto-generated method stub
                 jtf01.setText("");
                 jpf01.setText("");
+            }
+        });
+        jb03.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
             }
         });
         // 将各组件添加到容器中

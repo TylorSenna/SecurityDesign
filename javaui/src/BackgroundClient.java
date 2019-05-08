@@ -1,12 +1,17 @@
-
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import javax.swing.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -30,22 +35,132 @@ public class BackgroundClient {
     private static int USER_LOGIN = 1002;
     private static int receive=1;
     private static int send=0;
+    private static int USER_VERIFY = 1007;
     private static String USER_CONTENT_SPILIT="#@#";
     private SelectionKey sk;
-    private String SessionKey="abcdefg";
+    private String SessionKey="";
     private JTextArea chattextarea;
     private JList<String> list;
-    private JTextArea kerberostextarea;
-    private JTextArea datatextarea;
+    public JTextArea kerberostextarea;
+    public JTextArea datatextarea;
+
+    private static final String AS_IP = "192.168.43.199";
+    private static final String TGS_IP = "127.0.0.1";
+    private static final int AS_PORT = 8888;
+    private static final int TGS_PORT = 8889;
+    static Socket socket = null;
+    static DataOutputStream output = null;
+    static DataInputStream input = null;
+
+    private static final Logger log = LogManager.getLogger(BackgroundClient.class);
+
     /*
     * 初始化一个用户进程
     * */
     public void init() throws IOException {
         selector = Selector.open();
         //连接远程主机的IP和端口
-        sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", port));
+        sc = SocketChannel.open(new InetSocketAddress("192.168.43.199", port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
+    }
+
+    public static void main(String[] args){
+        BackgroundClient backgroundClient = new BackgroundClient();
+        try {
+            backgroundClient.init();
+            backgroundClient.Verify();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public boolean Verify() throws InterruptedException{
+
+        String Ticket_v;
+        String ID_c = "0001";//从ui界面获取
+        String AD_c = "172000000001";  //应该用个函数获取地址
+        Kerberos kerberos = new Kerberos();
+        boolean verify_result = false;
+
+        try {
+            socket = new Socket(AS_IP, AS_PORT);
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            //AS
+            Date TS1 = new Date();
+            String message = kerberos.client_to_as(ID_c,kerberos.ID_tgs,TS1);  //调用Kerberos类函数生成消息字符串
+            output.writeUTF(message);//发送信息
+            String receive = input.readUTF();  //接受信息
+            System.out.println("Client收到AS的加密报文："+ receive);  //输出接受信息->在ui界面显示
+            log.info("Client收到AS的加密报文：" + receive);
+            kerberostextarea.setText(kerberostextarea.getText() + "Client收到AS的加密报文："+ receive);
+            String[] result1 = kerberos.client_parse_as(receive);  //调用Kerberos类中解析函数
+            if(result1.length == 1){
+                log.error(" Client 访问 AS失败，不存在此IDc" + ID_c);
+                kerberostextarea.setText(kerberostextarea.getText() + "\n Client 访问 AS失败，不存在此IDc" + ID_c);
+                return false;
+            }
+            String k_c_tgs = result1[0];
+            String Ticket_tgs = result1[4];  //未解密的ticket_tgs  只有TGS可以解开
+
+            //TGS
+            Socket socket2 = new Socket(TGS_IP, TGS_PORT);
+            DataOutputStream output2 = new DataOutputStream(socket2.getOutputStream());
+            DataInputStream input2 = new DataInputStream(socket2.getInputStream());
+            Date TS3 = new Date();
+            String message2 = kerberos.client_to_tgs(kerberos.ID_v,Ticket_tgs,kerberos.get_Authenticator_c(k_c_tgs,ID_c,AD_c,TS3));  //调用Kerberos类函数生成消息字符串
+            output2.writeUTF(message2);//发送信息
+            String receive2 = input2.readUTF();  //接受信息
+            System.out.println("Client收到TGS的加密报文："+ receive2);  //输出接受信息->在ui界面显示
+            log.info("Client收到TGS的加密报文：" + receive2);
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到TGS的加密报文："+ receive2);
+            String[] result2 = null;
+            result2 = kerberos.client_parse_tgs(k_c_tgs, receive2);  //调用Kerberos类中解析函数
+            SessionKey = result2[0];
+            Ticket_v = result2[3];  //未解密的ticket_v  只有Server V可以解开
+
+            //Server V
+            Date TS5 = new Date();
+            String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c(SessionKey,ID_c,AD_c,TS5));  //调用Kerberos类函数生成消息字符串
+            sc.write(charset.encode("1007" + message3));//发送信息给Server V，表示要认证
+            ByteBuffer buff = ByteBuffer.allocate(1024);
+            String receive3 = "";//接受信息
+            sleep(100);
+            while(sc.read(buff) > 0)
+            {
+                buff.flip();
+                receive3 += charset.decode(buff);
+            }
+            System.out.println("Client收到Server V的加密报文："+ receive3);  //输出接受信息->在ui界面显示
+            log.info("Client收到Server V的加密报文："+ receive3);
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到Server V的加密报文："+ receive3);
+            String[] result3 = null;
+            result3 = kerberos.client_parse_v(SessionKey, receive3);  //调用Kerberos类中解析函数
+            String TS6 = result3[0];
+            if(TS6.equals(String.valueOf(TS5.getTime()+1))){
+                System.out.println("Client 与 Server V 认证成功，开始提供聊天室服务......");
+                log.info("Client 与 Server V 认证成功，开始提供聊天室服务");
+                kerberostextarea.setText(kerberostextarea.getText() + "\nClient 与 Server V 认证成功，开始提供聊天室服务");
+                verify_result = true;
+            }else {
+                System.out.println("认证失败: TS5 不符合 ，Log时间:" + new Date());
+                log.error("认证失败: TS5 不符合");
+                kerberostextarea.setText(kerberostextarea.getText() + "\n认证失败: TS5 不符合");
+                verify_result = false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                input.close();
+                output.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return verify_result;
     }
 
     /*
@@ -80,7 +195,7 @@ public class BackgroundClient {
     /*
     *将界面接口赋值
      */
-    public void update(JTextArea chattextarea0)
+    public void update(JTextArea chattextarea0,JTextArea kerberostextarea0,JTextArea datatextarea0)
     {
         chattextarea=chattextarea0;
 
@@ -93,6 +208,7 @@ public class BackgroundClient {
         kerberostextarea=kerberostextarea0;
         datatextarea=datatextarea0;
     }
+
     /*
     *重载用户进程代码
      */
@@ -179,16 +295,6 @@ public class BackgroundClient {
     public void AquireList(JList<String> list0) throws IOException, InterruptedException {
         list=list0;
         sc.write(charset.encode(PackageMessage("",USER_LIST)));//sc既能写也能读，这边是写
-        ByteBuffer buff = ByteBuffer.allocate(1024);
-        sleep(100);
-        String content = "";
-        while(sc.read(buff) > 0)
-        {
-            buff.flip();
-            content += charset.decode(buff);
-        }
-        if(content.length()>0)
-            unPackage(content);
     }
     public static void updataOnline(JList<String> list,String []s)
     {
@@ -281,8 +387,8 @@ public class BackgroundClient {
     }
 
     /*
-        *判断字符串是否为纯数字
-        */
+     *判断字符串是否为纯数字
+     */
     public static boolean isNumeric(String str)
     {
         for (int i = 0; i < str.length(); i++)
@@ -301,6 +407,9 @@ public class BackgroundClient {
     *将消息解封
     */
     public boolean unPackage(String message) throws IOException, InterruptedException {
+        if(message.length()==0){
+            return false;
+        }
         DES d=new DES(SessionKey);
         UiTextAreaCiphertext(message,receive);
         message=d.decrypt_string(message);
@@ -405,10 +514,10 @@ public class BackgroundClient {
     }
 
     /*
-    * 将字符串传入ui前端的数据交流区
-    * type  数据包的种类
-    * sor   发送还是接收
-    * */
+     * 将字符串传入ui前端的数据交流区
+     * type  数据包的种类
+     * sor   发送还是接收
+     * */
     private void UiTextAreaPlaintext(String text,int type,int sor)
     {
         text="  plaintext: "+text;
@@ -487,10 +596,10 @@ public class BackgroundClient {
 
 
     /*
-    * 将字符串传入ui前端的数据交流区
-    * type  数据包的种类
-    * sor   发送还是接收
-    * */
+     * 将字符串传入ui前端的数据交流区
+     * type  数据包的种类
+     * sor   发送还是接收
+     * */
     private void UiTextAreaCiphertext(String text,int sor)
     {
         text="ciphertext: "+text;

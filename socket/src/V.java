@@ -53,16 +53,7 @@ class Vthread  implements Runnable{
             String TS5_string = Authenticatorc.substring(16,29);
             System.out.println("Server V 接收到的TS_5_to_time:" + TS5_string);
             log.info("Server V 接收到的TS_5_to_time:" + TS5_string);
-            if(result[0].equals("02")){  //数据库查询ID判断
-                //判断成功，V调用Kerberos类中函数，返回加密后报文
-                output.writeUTF(kerberos.v_to_client(k_c_v,TS5_string));
-            }
-            else{
-                //数据库查询失败，返回出错码0000，不存在数据库中
-                output.writeUTF("0000");
-                System.out.println("Error: Client 访问 Server V失败");
-                log.error(" Client 访问 Server V失败");
-            }
+            output.writeUTF(kerberos.v_to_client(k_c_v,TS5_string));
             output.flush();
             socket.shutdownOutput();
             socket.close();

@@ -509,11 +509,14 @@ public class DES {
             M_bitSets[i] = Encrypt(C_bitSets[i],1);
         }
         String result = bitsets_to_base64string(M_bitSets);
-        /*  //由于已经不使用bitsets_to_string(BitSet[] bitsets)，所以也不需要此剔除过程，因为在bitsets_to_base64string()函数过程中已经处理了byte[]中是空的数据
         if(result.indexOf(0) >=0){
             result = result.substring(0,result.indexOf(0));    //这一步很重要，由于在result中含有ascll码为0的值，导致转换为byte[]时出错，所以要先剔除掉0
-        }*/
-        return new String(Base64.decode(result));
+        }
+        String base64result = new String(Base64.decode(result));
+        if(base64result.indexOf(0) >=0){
+            base64result = base64result.substring(0,base64result.indexOf(0));    //这一步很重要，因为base64解码后可能存在ascll = 0的值，所以要剔除掉0
+        }
+        return base64result;
     }
 
     public int[] getIP() {
