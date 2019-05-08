@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
 import java.util.regex.Pattern;
 
@@ -269,6 +270,8 @@ public class AntChatUi {
                     BackgroundClient client=new BackgroundClient();
                     client.kerberostextarea = textarea1;
                     client.datatextarea = textarea2;
+                    client.userId = jtf01;
+                    client.userPass =jpf01;
                     try {
                         client.init();
                     } catch (IOException e1) {
@@ -276,7 +279,7 @@ public class AntChatUi {
                     }
                     try {
                         verify_result = client.Verify();
-                    } catch (InterruptedException e3) {
+                    } catch (Exception e3) {
                         e3.printStackTrace();
                     }
                     if(verify_result){
