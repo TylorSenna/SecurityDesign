@@ -4,8 +4,10 @@ import javax.swing.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -43,6 +45,8 @@ public class BackgroundClient {
     private JList<String> list;
     public JTextArea kerberostextarea;
     public JTextArea datatextarea;
+    public JTextField userId;
+    public JTextField userPass;
 
     private static final String AS_IP = "192.168.43.199";
     private static final String TGS_IP = "127.0.0.1";
@@ -75,11 +79,20 @@ public class BackgroundClient {
         }
     }
 
-    public boolean Verify() throws InterruptedException{
+    public boolean Verify() throws InterruptedException, UnknownHostException {
 
         String Ticket_v;
-        String ID_c = "0001";//从ui界面获取
-        String AD_c = "172000000001";  //应该用个函数获取地址
+        String ID_c = userId.getText();//从ui界面获取
+        String K_c = userPass.getText();
+        InetAddress address = InetAddress.getLocalHost();
+        String[] AD_C_array = address.getHostAddress().split("\\.");
+        String AD_c = "";
+        for(int i=0; i<AD_C_array.length; i++){
+            while(AD_C_array[i].length()<3){
+                AD_C_array[i] = "0" + AD_C_array[i];
+            }
+            AD_c += AD_C_array[i];
+        }
         Kerberos kerberos = new Kerberos();
         boolean verify_result = false;
 
@@ -91,14 +104,20 @@ public class BackgroundClient {
             Date TS1 = new Date();
             String message = kerberos.client_to_as(ID_c,kerberos.ID_tgs,TS1);  //调用Kerberos类函数生成消息字符串
             output.writeUTF(message);//发送信息
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给AS的加密报文："+ message);
             String receive = input.readUTF();  //接受信息
             System.out.println("Client收到AS的加密报文："+ receive);  //输出接受信息->在ui界面显示
             log.info("Client收到AS的加密报文：" + receive);
             kerberostextarea.setText(kerberostextarea.getText() + "Client收到AS的加密报文："+ receive);
-            String[] result1 = kerberos.client_parse_as(receive);  //调用Kerberos类中解析函数
+            String[] result1 = kerberos.client_parse_as(K_c, receive);  //调用Kerberos类中解析函数
             if(result1.length == 1){
-                log.error(" Client 访问 AS失败，不存在此IDc" + ID_c);
-                kerberostextarea.setText(kerberostextarea.getText() + "\n Client 访问 AS失败，不存在此IDc" + ID_c);
+                if(result1[0].length()==4){
+                    log.error(" Client 访问 AS失败，不存在此IDc" + ID_c);
+                    kerberostextarea.setText(kerberostextarea.getText() + "\n Client 访问 AS失败，不存在此IDc" + ID_c);
+                }else {
+                    log.error(" Client 访问 AS失败，密码错误:" + result1[0]);
+                    kerberostextarea.setText(kerberostextarea.getText() + "\n Client 访问 AS失败，密码错误:" + result1[0]);
+                }
                 return false;
             }
             String k_c_tgs = result1[0];
@@ -111,6 +130,7 @@ public class BackgroundClient {
             Date TS3 = new Date();
             String message2 = kerberos.client_to_tgs(kerberos.ID_v,Ticket_tgs,kerberos.get_Authenticator_c(k_c_tgs,ID_c,AD_c,TS3));  //调用Kerberos类函数生成消息字符串
             output2.writeUTF(message2);//发送信息
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给TGS的加密报文："+ message2);
             String receive2 = input2.readUTF();  //接受信息
             System.out.println("Client收到TGS的加密报文："+ receive2);  //输出接受信息->在ui界面显示
             log.info("Client收到TGS的加密报文：" + receive2);
@@ -124,6 +144,7 @@ public class BackgroundClient {
             Date TS5 = new Date();
             String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c(SessionKey,ID_c,AD_c,TS5));  //调用Kerberos类函数生成消息字符串
             sc.write(charset.encode("1007" + message3));//发送信息给Server V，表示要认证
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给V的加密报文："+ message3);
             ByteBuffer buff = ByteBuffer.allocate(1024);
             String receive3 = "";//接受信息
             sleep(100);

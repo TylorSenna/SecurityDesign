@@ -44,12 +44,12 @@ public class Kerberos {
         return result;
     }
 
-    public String as_to_client(String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
+    public String as_to_client(String K_c, String K_c_tgs,String ID_tgs,Date TS_2,String Lifetime_2,String Ticket_tgs){
         String message;
 
         TS_2 = new Date();
         message = K_c_tgs + ID_tgs + TS_2.getTime() + Lifetime_2 + Ticket_tgs;
-        DES des = new DES("abcdefg");
+        DES des = new DES(K_c);//K_c
 
         System.out.println("AS发给Client的明文是："+message);
         message = des.encrypt_string(message);
@@ -68,18 +68,23 @@ public class Kerberos {
      * 解析AS发给Client的报文message
      * 把Message解析到入口参数K_c_tgs || ID_tgs || TS_2 || Lifetime_2 || Ticket_tgs
      */
-    public String[] client_parse_as(String message){//注意判断message为空、长度大于0   注意加密后的报文长度不固定
+    public String[] client_parse_as(String K_C, String message){//注意判断message为空、长度大于0   注意加密后的报文长度不固定
         if(message.length() == 4){// AS回传0000 表示数据库没查到
             String[] result = new String[1];
             result[0] = message;
             return result;
         }
         String parse[] = new String[5];
-        DES des = new DES("abcdefg");  //K_C
+        DES des = new DES(K_C);  //K_C
         message = des.decrypt_string(message);
         System.out.println("Client解密AS传来的报文:K_c_tgs || ID_tgs || TS_2 || Lifetime_2 || Ticket_tgs"+ message);
         parse[0] = message.substring(0,7);
         parse[1] = message.substring(7,9);
+        if(!parse[1].equals(ID_tgs)){
+            String[] result = new String[1];
+            result[0] = K_C;
+            return result;
+        }
         parse[2] = message.substring(9,22);
         parse[3] = message.substring(22,35);
         parse[4] = message.substring(35,message.length());
