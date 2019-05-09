@@ -80,7 +80,7 @@ public class AntChatUi {
     * @jl1 显示kerberos数据框
     * @jl2 显示数据交流数据框
     */
-    public void Anonymousroom(JPanel panel, JTextArea jl1, JTextArea jl2, JLabel OnlineLabel, JList<String> list, String name, BackgroundClient client)
+    public void Anonymousroom(JPanel panel,JTextArea textarea0, JTextArea jl1, JTextArea jl2, JLabel OnlineLabel, JList<String> list, String name, BackgroundClient client)
     {
         //监听关闭窗口的事件
         frame.addWindowListener(new WindowAdapter() {
@@ -103,7 +103,7 @@ public class AntChatUi {
         }
 
         //创建显示文字的区域
-        JTextArea textarea0=new JTextArea();
+        textarea0.setVisible(true);
         //将后台与前台ui连接
         client.update(textarea0,jl1,jl2);
         JScrollPane jsp0 = new JScrollPane(textarea0);
@@ -139,8 +139,6 @@ public class AntChatUi {
                     JOptionPane.showMessageDialog(null, "发送消息不能为空!");
                 }
                 else{
-                    JOptionPane.showMessageDialog(null, "OK!");
-
                     try {
                         client.SendMessage(userText.getText());
                         userText.setText("");
@@ -198,7 +196,9 @@ public class AntChatUi {
                         jl0.setVisible(false);
                         userText.setVisible(false);
                         confirmButton.setVisible(false);
-                        Anonymousroom(panel,textarea1,textarea2,OnlineLabel,list,name,client);
+                        JTextArea communicateText = new JTextArea();
+                        communicateText.setVisible(false);
+                        Anonymousroom(panel,communicateText,textarea1,textarea2,OnlineLabel,list,name,client);
                     }
                     else{
                         JOptionPane.showMessageDialog(null, "昵称重复!");
@@ -330,7 +330,13 @@ public class AntChatUi {
         jb03.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                BackgroundClient client=new BackgroundClient();
+                boolean result = client.Register();
+                if(result){
+                    JOptionPane.showMessageDialog(null, "注册错误");
+                }else {
+                    JOptionPane.showMessageDialog(null, "注册成功");
+                }
             }
         });
         // 将各组件添加到容器中

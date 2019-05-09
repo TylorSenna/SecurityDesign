@@ -37,7 +37,7 @@ public class BackgroundClient {
     private static int USER_LOGIN = 1002;
     private static int receive=1;
     private static int send=0;
-    private static int USER_VERIFY = 1007;
+    private static String USER_VERIFY = "1007";
     private static String USER_CONTENT_SPILIT="#@#";
     private SelectionKey sk;
     private String SessionKey="";
@@ -50,6 +50,7 @@ public class BackgroundClient {
 
     private static final String AS_IP = "192.168.43.199";
     private static final String TGS_IP = "192.168.43.248";
+    private static final String V_IP = "192.168.43.196";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
     static Socket socket = null;
@@ -64,7 +65,7 @@ public class BackgroundClient {
     public void init() throws IOException {
         selector = Selector.open();
         //连接远程主机的IP和端口
-        sc = SocketChannel.open(new InetSocketAddress("192.168.43.199", port));
+        sc = SocketChannel.open(new InetSocketAddress(V_IP, port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
     }
@@ -108,7 +109,7 @@ public class BackgroundClient {
             String receive = input.readUTF();  //接受信息
             System.out.println("Client收到AS的加密报文："+ receive);  //输出接受信息->在ui界面显示
             log.info("Client收到AS的加密报文：" + receive);
-            kerberostextarea.setText(kerberostextarea.getText() + "Client收到AS的加密报文："+ receive);
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到AS的加密报文："+ receive);
             String[] result1 = kerberos.client_parse_as(K_c, receive);  //调用Kerberos类中解析函数
             if(result1.length == 1){
                 if(result1[0].length()==4){
@@ -143,7 +144,7 @@ public class BackgroundClient {
             //Server V
             Date TS5 = new Date();
             String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c(SessionKey,ID_c,AD_c,TS5));  //调用Kerberos类函数生成消息字符串
-            sc.write(charset.encode("1007" + message3));//发送信息给Server V，表示要认证
+            sc.write(charset.encode(USER_VERIFY + message3));//发送信息给Server V，表示要认证
             kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给V的加密报文："+ message3);
             ByteBuffer buff = ByteBuffer.allocate(1024);
             String receive3 = "";//接受信息
@@ -183,6 +184,50 @@ public class BackgroundClient {
         }
         return verify_result;
     }
+
+    public boolean Register(){
+        try {
+            socket = new Socket(AS_IP, AS_PORT);
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            Kerberos kerberos = new Kerberos();
+            String message = kerberos.register;  //Kerberos类请求注册字符串
+            output.writeUTF(message);//发送注册请求
+            //System.out.println(message.length());  //检验数据长度
+            String receive = input.readUTF();  //接受证书
+            System.out.println("证书："+ receive);
+            //调用Kerberos类中解析函数,解析证书
+            String pk = kerberos.parse_Certification(receive);
+            String ID_c = userId.getText();//从ui界面获取
+            String K_c = userPass.getText();
+            if(!pk.equals(null)){
+                output.writeUTF(kerberos.client_id_key(ID_c,K_c,pk));
+                receive = input.readUTF();  //注册情况
+                if(receive.equals("0002")){
+                    log.error(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
+                    return false;
+                }else {
+                    System.out.println("注册成功，ID_C: "+ ID_c);
+                    return true;
+                }
+            }else {
+                log.error(" 注册失败，错误原因: 证书认证失败");
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                input.close();
+                output.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
 
     /*
     *申请匿名昵称
@@ -453,6 +498,9 @@ public class BackgroundClient {
             int length=Integer.parseInt(len);
             if(length>0){
                 String info=message.substring(12,12+length);
+                if(chattextarea == null){
+                    return false;
+                }
                 String str=chattextarea.getText();
                 chattextarea.setText(str+"\n"+info);
                 chattextarea.setCaretPosition(chattextarea.getText().length());
