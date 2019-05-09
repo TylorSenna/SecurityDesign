@@ -200,6 +200,7 @@ public class BackgroundClient {
             String pk = kerberos.parse_Certification(receive);
             String ID_c = userId.getText();//从ui界面获取
             String K_c = userPass.getText();
+
             if(!pk.equals(null)){
                 output.writeUTF(kerberos.client_id_key(ID_c,K_c,pk));
                 receive = input.readUTF();  //注册情况

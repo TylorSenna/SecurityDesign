@@ -331,11 +331,13 @@ public class AntChatUi {
             @Override
             public void actionPerformed(ActionEvent e) {
                 BackgroundClient client=new BackgroundClient();
+                client.userId = jtf01;
+                client.userPass =jpf01;
                 boolean result = client.Register();
                 if(result){
-                    JOptionPane.showMessageDialog(null, "注册错误");
+                    JOptionPane.showMessageDialog(null, "注册成功!");
                 }else {
-                    JOptionPane.showMessageDialog(null, "注册成功");
+                    JOptionPane.showMessageDialog(null, "注册错误!");
                 }
             }
         });
