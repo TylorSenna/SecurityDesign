@@ -162,8 +162,8 @@ public class AntChatUi {
     * @jl2 显示数据交流数据框
     */
     public void inputFunname(JFrame frame, JPanel panel, JTextArea textarea1, JTextArea textarea2, JLabel OnlineLabel, JList<String> list, BackgroundClient client) throws IOException {
-        client.StartThread();
         client.update(textarea1,textarea2);
+        client.StartThread();
         try {
             client.AquireList(list);
         } catch (InterruptedException e) {

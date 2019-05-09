@@ -49,7 +49,7 @@ public class BackgroundClient {
     public JTextField userPass;
 
     private static final String AS_IP = "192.168.43.199";
-    private static final String TGS_IP = "127.0.0.1";
+    private static final String TGS_IP = "192.168.43.248";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
     static Socket socket = null;
@@ -445,10 +445,10 @@ public class BackgroundClient {
             return false;
         int type=Integer.parseInt(type0);
         if(type == USER_SEND){
-            UiTextAreaPlaintext(message,USER_SEND,receive);
             if(name.length()==0){
                 return true;
             }
+            UiTextAreaPlaintext(message,USER_SEND,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             if(length>0){
