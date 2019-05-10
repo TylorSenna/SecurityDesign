@@ -45,7 +45,7 @@ public class ChatRoomServer {
     private static String USER_CONTENT_SPILIT = "#@#";
     private SocketChannel sc0;
 
-    public static HashMap<SocketChannel,String> map = new HashMap<>();//数据字典,通道与sessionkey
+    public static HashMap<SocketChannel,String[]> map = new HashMap<>();//数据字典,通道与sessionkey
 
     private static boolean flag = false;
 
@@ -134,7 +134,7 @@ public class ChatRoomServer {
             message+=USER_CONTENT_SPILIT;
             System.out.println(message);
         }
-        DES des = new DES(map.get(sc));
+        DES des = new DES(map.get(sc)[0]);
         sc.write(charset.encode(des.encrypt_string(PackageMessage(message,USER_LIST))));
     }
     //TODO 要是能检测下线，就不用这么统计了
@@ -159,18 +159,21 @@ public class ChatRoomServer {
         for(SelectionKey key : selector.keys())
         {
             i++;
-            System.out.println("i: "+i);
+            //System.out.println("i: "+i);
             Channel targetchannel = key.channel();
             //如果except不为空，不回发给发送此内容的客户端
             if(targetchannel instanceof SocketChannel && targetchannel!=except)
             {
                 j++;
-                System.out.println("j: "+j);
+                //System.out.println("j: "+j);
                 SocketChannel dest = (SocketChannel)targetchannel;
 
                 //String name =
-                DES des = new DES(map.get(dest));
-
+                if(map.get(dest)==null){
+                    System.out.println("map size:   "+map.size()+"   ************************************");
+                    return;
+                }
+                DES des = new DES(map.get(dest)[0]);
                 dest.write(charset.encode(des.encrypt_string(content)));
             }
         }
@@ -195,15 +198,24 @@ public class ChatRoomServer {
             DES des2 = new DES(k_c_v); //K_c_v
             String Authenticatorc = des2.decrypt_string(result[2]);
             String TS5_string = Authenticatorc.substring(16,29);
+            String client_N = Authenticatorc.substring(29).split(" ")[0];
+            String client_PK = Authenticatorc.substring(29).split(" ")[1];
             System.out.println("Server V 接收到的TS_5_to_time:" + TS5_string);
             log.info("Server V 接收到的TS_5_to_time:" + TS5_string);
 
-            map.put(sc0,k_c_v);//将通道与sessionkey对应
+            System.out.println("k_c_v:"+k_c_v);
+            System.out.println("注册用户map添加前大小："+map.size());
+            String map_client_value[] = new String[3];
+            map_client_value[0] = k_c_v;
+            map_client_value[1] = client_N;
+            map_client_value[2] = client_PK;
+            map.put(sc0,map_client_value);//将通道与sessionkey对应
+            System.out.println("注册用户map添加后大小："+map.size());
 
             sc0.write(charset.encode(kerberos.v_to_client(k_c_v,TS5_string)));
             return false;
         }
-        DES d=new DES(map.get(sc0));
+        DES d=new DES(map.get(sc0)[0]);
         message=d.decrypt_string(message);
         String type0=message.substring(0,4);
         int type=Integer.parseInt(type0);
@@ -221,7 +233,9 @@ public class ChatRoomServer {
             String hash=message.substring(12+length);
             users.remove(info);
 
+            System.out.println("用户退出map移除前大小："+map.size());
             map.remove(sc0);//将信道弹出
+            System.out.println("用户退出map移除后大小："+map.size());
 
             int num = OnlineNum(selector);
             info=info+" exit the chat room! Online numbers:"+(num-1);
@@ -236,12 +250,12 @@ public class ChatRoomServer {
             String info=message.substring(12,12+length);
             String hash=message.substring(12+length);
             if(users.contains(info)) {
-                DES des = new DES(map.get(sc0));
+                DES des = new DES(map.get(sc0)[0]);
                 sc0.write(charset.encode(des.encrypt_string(PackageMessage("the name exist",USER_EXIST))));
             }
             else{
                 users.add(info);
-                DES des = new DES(map.get(sc0));
+                DES des = new DES(map.get(sc0)[0]);
                 sc0.write(charset.encode(des.encrypt_string(PackageMessage(info,USER_REGIST_SUCC))));
                 System.out.println("name:"+info);
                 int num = OnlineNum(selector);
