@@ -1,3 +1,4 @@
+import RSA.RSA;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import javax.swing.*;
@@ -48,6 +49,9 @@ public class BackgroundClient {
     public JTextArea datatextarea;
     public JTextField userId;
     public JTextField userPass;
+    private  BigInteger[] pubkey;//server的公钥
+    private  BigInteger[] selfkey;//client的私钥
+    RSA rsa;
 
     private static final String AS_IP = "192.168.43.199";
     private static final String TGS_IP = "192.168.43.199";
@@ -69,7 +73,10 @@ public class BackgroundClient {
         sc = SocketChannel.open(new InetSocketAddress(V_IP, port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
+        pubkey[0]=new BigInteger("13001106526213460135508574438840026795234423504475048394574507593825609303940972968641240068077643512099754665285310307761434798867852929898156665888139980391508044898214140863780027477940340938052795780670631144808803015806046739377393676757840926487115296689326934732127307465606187070590942866873828652644747198161955492870684564271203405791512164665860264154930957132317401123147585992330684664625062722742170140920105831476904564832667101943244060923092249831560742328940893107943174268255288128745656481042601161876880862066173174282190546980044281034081128934074579100081681010910010248617335049232458523680621");
+        pubkey[1]=new BigInteger("65537");
     }
+
 
     public boolean Verify() throws InterruptedException, UnknownHostException {
 
@@ -138,6 +145,8 @@ public class BackgroundClient {
             BufferedReader br = new BufferedReader(new FileReader(fileS));//构造一个BufferedReader类来读取文件
             String N = br.readLine();
             String PK = br.readLine();
+            selfkey[0]=new BigInteger(br.readLine());
+            selfkey[1]=new BigInteger(br.readLine());
             br.close();
             String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c_sig(SessionKey,ID_c,AD_c,TS5,N,PK));  //调用Kerberos类函数生成消息字符串
             sc.write(charset.encode(USER_VERIFY + message3));//发送信息给Server V，表示要认证
@@ -161,6 +170,7 @@ public class BackgroundClient {
                 log.info("Client 与 Server V 认证成功，开始提供聊天室服务");
                 kerberostextarea.setText(kerberostextarea.getText() + "\nClient 与 Server V 认证成功，开始提供聊天室服务");
                 verify_result = true;
+                rsa=new RSA(pubkey,selfkey);
             }else {
                 System.out.println("认证失败: TS5 不符合 ，Log时间:" + new Date());
                 log.error("认证失败: TS5 不符合");
@@ -305,7 +315,7 @@ public class BackgroundClient {
     public void StartThread()
     {
         //开辟一个新线程来读取从服务器端的数据
-        new Thread(new BackgroundClient.ClientThread()).start();
+        new Thread(new ClientThread()).start();
     }
 
     /*
@@ -366,19 +376,18 @@ public class BackgroundClient {
     }
 
     /*
-     *将消息封装
-     */
+    *将消息封装
+    */
     public String PackageMessage(String message,int type)
     {
         DES d=new DES(SessionKey);
-        String hash="0000000000";
         String str=""+message;
         String result="";
         int len=message.length();
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_EXIT,send);
@@ -387,7 +396,7 @@ public class BackgroundClient {
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_LOGIN,send);
@@ -396,7 +405,7 @@ public class BackgroundClient {
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_SEND,send);
@@ -404,7 +413,7 @@ public class BackgroundClient {
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_LIST,send);
@@ -412,7 +421,7 @@ public class BackgroundClient {
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_REQUIRE,send);
@@ -420,7 +429,7 @@ public class BackgroundClient {
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_REGIST_SUCC,send);
@@ -428,7 +437,7 @@ public class BackgroundClient {
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
-            str=str+hash;
+            str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_EXIST,send);
@@ -468,8 +477,8 @@ public class BackgroundClient {
 
 
     /*
-     *将消息解封
-     */
+    *将消息解封
+    */
     public boolean unPackage(String message) throws IOException, InterruptedException {
         if(message.length()==0){
             return false;
@@ -480,6 +489,7 @@ public class BackgroundClient {
         if(message.indexOf(0) >=0){
             message = message.substring(0,message.indexOf(0));    //这一步很重要，由于在result中含有ascll码为0的值，导致转换为byte[]时出错，所以要先剔除掉0
         }
+        String content="";
         System.out.println(message);
         if(message.length()<4)
             return false;
@@ -496,6 +506,7 @@ public class BackgroundClient {
             int length=Integer.parseInt(len);
             if(length>0){
                 String info=message.substring(12,12+length);
+
                 if(chattextarea == null){
                     return false;
                 }
@@ -503,9 +514,13 @@ public class BackgroundClient {
                 chattextarea.setText(str+"\n"+info);
                 chattextarea.setCaretPosition(chattextarea.getText().length());
             }
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             return true;
@@ -514,9 +529,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_EXIST,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             name="";
@@ -528,9 +547,13 @@ public class BackgroundClient {
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             sym=1;
@@ -541,9 +564,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_LOGIN,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             AquireList(list);
@@ -553,9 +580,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_EXIT,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             AquireList(list);
@@ -570,9 +601,13 @@ public class BackgroundClient {
                 String info=message.substring(12,12+length);
                 UntagList(list,info);
             }
-            String hash=message.substring(12+length,12+length+10);
-            if(message.length()>12+length+10){
-                String remain=message.substring(12+length+10);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
+            if(message.length()>12+length+8+signlen){
+                String remain=message.substring(12+length+8+signlen);
                 unPackage(remain);
             }
             return true;
@@ -685,4 +720,22 @@ public class BackgroundClient {
     }
 
 
+    /*
+    * 将传入的字符串进行hash后进行加密并返回加密后的字符串
+    * */
+    private String PutSign(String plaintext)
+    {
+        String signature=rsa.sign_string(plaintext);
+        String signlen=IntToString(signature.length());
+        plaintext=plaintext+signlen+signature;
+        return plaintext;
+    }
+    /*
+    * 将传入的字符串进行rsa解密并返回解密后的字符串
+    * */
+    private int VertifySign(String cyphertext)
+    {
+        String hashnum=rsa.verify_string(cyphertext);
+        return Integer.parseInt(hashnum);
+    }
 }

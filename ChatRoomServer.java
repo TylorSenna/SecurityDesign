@@ -1,3 +1,4 @@
+import RSA.RSA;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -42,6 +43,8 @@ public class ChatRoomServer {
     private static int USER_SEND = 1001;
     private static int USER_LOGIN = 1002;
     private static String USER_VERIFY = "1007";
+    private  BigInteger[] pubkey;//server的公钥
+    private  BigInteger[] selfkey;//client的私钥
 
     private static String USER_CONTENT_SPILIT = "#@#";
     private SocketChannel sc0;
@@ -59,7 +62,8 @@ public class ChatRoomServer {
         server.configureBlocking(false);
         //注册到选择器上，设置为监听状态
         server.register(selector, SelectionKey.OP_ACCEPT);
-
+        selfkey[0]=new BigInteger("13001106526213460135508574438840026795234423504475048394574507593825609303940972968641240068077643512099754665285310307761434798867852929898156665888139980391508044898214140863780027477940340938052795780670631144808803015806046739377393676757840926487115296689326934732127307465606187070590942866873828652644747198161955492870684564271203405791512164665860264154930957132317401123147585992330684664625062722742170140920105831476904564832667101943244060923092249831560742328940893107943174268255288128745656481042601161876880862066173174282190546980044281034081128934074579100081681010910010248617335049232458523680621");
+        selfkey[1]=new BigInteger("5439329536631931023017678601989024439607132735236604542942741103729257999370699571649208255285119969761557183994658335421376943561006141338138114683108932699921557029832514889970315599091295118489854700554008199330341179644872294230568338847112934118897940398929691981936900428757130220921510939878442831174746219191444366146520185770293651513065881337073020694268006091552298717545117918401985236054144766429626803652100609542344298298566770250441286836147256806667334663886757135622190258178220092732310647591548452806037735659793600006601342570157978583135821331001790890256098422489671528280433453376749772318901");
         System.out.println("Server is listening now...");
 
         while(true) {
@@ -153,10 +157,11 @@ public class ChatRoomServer {
         return res;
     }
 
-    public static void BroadCast(Selector selector, SocketChannel except, String content) throws IOException {
+    public void BroadCast(Selector selector, SocketChannel except, String content) throws IOException {
         //广播数据到所有的SocketChannel中
         int i=0;
         int j=0;
+
         for(SelectionKey key : selector.keys())
         {
             i++;
@@ -175,6 +180,7 @@ public class ChatRoomServer {
                     return;
                 }
                 DES des = new DES(map.get(dest)[0]);
+                content=PutSign(content,dest);
                 dest.write(charset.encode(des.encrypt_string(content)));
             }
         }
@@ -186,6 +192,7 @@ public class ChatRoomServer {
      */
     public boolean unPackage(String message) throws IOException {
         String typ=message.substring(0,4);
+        String content="";
         if(typ.equals(USER_VERIFY)){
             String receive = message.substring(4);
             Kerberos kerberos = new Kerberos();
@@ -225,14 +232,22 @@ public class ChatRoomServer {
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
             BroadCast(selector, null, PackageMessage(info,USER_SEND));
         }
         else if(type == USER_EXIT){
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
             users.remove(info);
 
             System.out.println("用户退出map移除前大小："+map.size());
@@ -244,21 +259,31 @@ public class ChatRoomServer {
             BroadCast(selector, sc0, PackageMessage(info,USER_EXIT));
         }
         else if(type == USER_LIST){
+            String len=message.substring(4,12);
+            int length=Integer.parseInt(len);
+            String info=message.substring(12,12+length);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
+            if(content.hashCode()!=hash)
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
             SendList(sc0);
         }
         else if(type == USER_REQUIRE){
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            String hash=message.substring(12+length);
+            content=message.substring(0,12+length);
+            int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
             if(users.contains(info)) {
                 DES des = new DES(map.get(sc0)[0]);
-                sc0.write(charset.encode(des.encrypt_string(PackageMessage("the name exist",USER_EXIST))));
+                sc0.write(charset.encode(des.encrypt_string(PutSign(PackageMessage("the name exist",USER_EXIST),sc0))));
             }
             else{
                 users.add(info);
                 DES des = new DES(map.get(sc0)[0]);
-                sc0.write(charset.encode(des.encrypt_string(PackageMessage(info,USER_REGIST_SUCC))));
+                sc0.write(charset.encode(des.encrypt_string(PutSign(PackageMessage(info,USER_REGIST_SUCC),sc0))));
                 System.out.println("name:"+info);
                 int num = OnlineNum(selector);
                 String mess = "welcome "+info+" to chat room! Online numbers:"+num;
@@ -334,7 +359,30 @@ public class ChatRoomServer {
         return str;
     }
 
-
+    /*
+    * 将传入的字符串进行hash后进行加密并返回加密后的字符串
+    * */
+    private String PutSign(String plaintext,SocketChannel sc)
+    {
+        pubkey[0]=new BigInteger(map.get(sc)[1]);
+        pubkey[1]=new BigInteger(map.get(sc)[2]);
+        RSA rsa=new RSA(pubkey,selfkey);
+        String signature=rsa.sign_string(plaintext);
+        String signlen=IntToString(signature.length());
+        plaintext=plaintext+signlen+signature;
+        return plaintext;
+    }
+    /*
+    * 将传入的字符串进行rsa解密并返回解密后的字符串
+    * */
+    private int VertifySign(String cyphertext,SocketChannel sc)
+    {
+        pubkey[0]=new BigInteger(map.get(sc)[1]);
+        pubkey[0]=new BigInteger(map.get(sc)[2]);
+        RSA rsa=new RSA(pubkey,selfkey);
+        String hashnum=rsa.verify_string(cyphertext);
+        return Integer.parseInt(hashnum);
+    }
 
 
 
