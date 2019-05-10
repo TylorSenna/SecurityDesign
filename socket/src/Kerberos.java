@@ -3,6 +3,7 @@ import RSA.RSA;
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.Date;
+import java.util.Random;
 
 public class Kerberos {
 
@@ -29,7 +30,7 @@ public class Kerberos {
 
     public String[] as_parse_client(String message){
         String []result;
-        if(message.length()==4){
+        if(message.length()==4){//代表注册
             result = new String[1];
         }
         else {//注意判断message为空、长度是不是等于规定的报文长度
@@ -245,18 +246,6 @@ public class Kerberos {
         return parse;
     }
 
-    public String get_Ticket_v(){  //暂时用这个，写完后用标准的有参数函数
-        String message;
-        String K_v = K_V;
-        String K_c_v = "1234567";
-        String ID_c = "0001";
-        String AD_c = "192168000001";
-        long TS_4 = new Date().getTime();
-        DES des = new DES(K_v);
-        message = des.encrypt_string(K_c_v + ID_c + AD_c + ID_v + TS_4 + Lifetime);
-        return message;
-    }
-
     /**
      * 生成服务许可票据Ticket_v
      */
@@ -291,7 +280,7 @@ public class Kerberos {
 
     /**
      * Server V 解析 从Client发过来的请求报文
-     * 把Message解析到Stirng[], String数组元素为：IDv || Ticket_v || Authenticator_c
+     * 把Message解析到Stirng[], String数组元素为：Ticket_v || Authenticator_c
      */
     public String[] v_parse_client(String message){
         String []result;
@@ -326,6 +315,31 @@ public class Kerberos {
         System.out.println("Client解密V传来的报文:TS_5 + 1:"+ message);
         parse[0] = message;
         return parse;
+    }
+
+    /**
+     * Client经过TGS 用K_c_v生成认证消息AuthenticatorC(TS_5)
+     */
+    public String get_Authenticator_c_sig(String K_c_tgs,String ID_c,String AD_c,Date TS_5,String N,String SK){
+        String message;
+        DES des = new DES(K_c_tgs);
+        message = des.encrypt_string(ID_c + AD_c + TS_5.getTime() + N + " " + SK);
+        return message;
+    }
+
+    /**
+     * 生成随机7位DES密码 用于k_c_tgs k_c_v
+     */
+    public String create_sessionkey(){
+        String sessionKey = new String();
+        StringBuilder stringBuilder = new StringBuilder();
+        int[] temp = new int[7];  //ascll 码值 随机49 -- 122
+        Random random = new Random();
+        for(int i=0; i<temp.length; i++){
+            temp[i] = random.nextInt(122) % (122 - 49 + 1) + 49;
+            stringBuilder.append((char)temp[i]);
+        }
+        return stringBuilder.toString();
     }
 
 }

@@ -38,6 +38,8 @@ public class BackgroundClient {
     private static int receive=1;
     private static int send=0;
     private static String USER_VERIFY = "1007";
+    private static String USER_ID_EXISTED = "0002";
+    private static String USER_NOT_EXITS = "0000";
     private static String USER_CONTENT_SPILIT="#@#";
     private SelectionKey sk;
     private String SessionKey="";
@@ -68,16 +70,6 @@ public class BackgroundClient {
         sc = SocketChannel.open(new InetSocketAddress(V_IP, port));
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
-    }
-
-    public static void main(String[] args){
-        BackgroundClient backgroundClient = new BackgroundClient();
-        try {
-            backgroundClient.init();
-            backgroundClient.Verify();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     public boolean Verify() throws InterruptedException, UnknownHostException {
@@ -112,7 +104,7 @@ public class BackgroundClient {
             kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到AS的加密报文："+ receive);
             String[] result1 = kerberos.client_parse_as(K_c, receive);  //调用Kerberos类中解析函数
             if(result1.length == 1){
-                if(result1[0].length()==4){
+                if(result1[0].equals(USER_NOT_EXITS)){
                     log.error(" Client 访问 AS失败，不存在此IDc" + ID_c);
                     kerberostextarea.setText(kerberostextarea.getText() + "\n Client 访问 AS失败，不存在此IDc" + ID_c);
                 }else {
@@ -206,6 +198,7 @@ public class BackgroundClient {
                 receive = input.readUTF();  //注册情况
                 if(receive.equals("0002")){
                     log.error(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
+                    System.out.println(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
                     return false;
                 }else {
                     System.out.println("注册成功，ID_C: "+ ID_c);
@@ -213,6 +206,7 @@ public class BackgroundClient {
                 }
             }else {
                 log.error(" 注册失败，错误原因: 证书认证失败");
+                System.out.println(" 注册失败，错误原因: 证书认证失败");
                 return false;
             }
         } catch (IOException e) {
@@ -226,7 +220,8 @@ public class BackgroundClient {
                 e.printStackTrace();
             }
         }
-        return true;
+        System.out.println(" 注册失败，错误原因: 未获取证书");
+        return false;
     }
 
 

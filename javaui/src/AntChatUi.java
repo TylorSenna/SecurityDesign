@@ -257,6 +257,18 @@ public class AntChatUi {
         JTextArea textarea2=new JTextArea(" ");
         textarea2.setEditable(false);
         //添加监听
+
+        BackgroundClient client=new BackgroundClient();
+        client.kerberostextarea = textarea1;
+        client.datatextarea = textarea2;
+        client.userId = jtf01;
+        client.userPass =jpf01;
+        try {
+            client.init();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+
         jb01.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -267,16 +279,6 @@ public class AntChatUi {
                         new String(jpf01.getPassword()).trim().length()<12) {
 
                     boolean verify_result = false;
-                    BackgroundClient client=new BackgroundClient();
-                    client.kerberostextarea = textarea1;
-                    client.datatextarea = textarea2;
-                    client.userId = jtf01;
-                    client.userPass =jpf01;
-                    try {
-                        client.init();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
                     try {
                         verify_result = client.Verify();
                     } catch (Exception e3) {

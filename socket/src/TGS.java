@@ -42,7 +42,8 @@ class TGSthread  implements Runnable{
             String []result = kerberos.tgs_parse_client(receive);
             System.out.println("TGS 接收到 Client的报文: "+ receive);
             log.info("TGS 接收到 Client的报文: "+ receive);
-            String k_c_v = "1234567";//当生命周期过后要换密钥 K_c_v
+            String k_c_v = kerberos.create_sessionkey();//当生命周期过后要换密钥 K_c_v————> 每次认证都随机生成，由客户端判断生命周期
+
             String Ticket_tgs = result[1];
             DES des = new DES("tgsmima"); //K_TGS
             String Ticket_tgs_decrypt = des.decrypt_string(Ticket_tgs);

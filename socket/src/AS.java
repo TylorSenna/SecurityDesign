@@ -46,6 +46,7 @@ public class AS {
                     System.out.println("AS 接收到 Client的报文"+ receive);
                     log.info("AS 接收到 Client的报文"+ receive);
                     String ID_C = result[0];
+
                     String[] AD_C_array = address.getHostAddress().split("\\.");
                     String AD_C = "";
                     for(int i=0; i<AD_C_array.length; i++){
@@ -83,9 +84,9 @@ public class AS {
                         //receive = input.readUTF();
                         //调用插入数据库操作
                     }
-                    else if(result[0].length()==4){
+                    else if(result[0].length()!=4){
                         String k_c = db.chazhao(result[0]);
-                        String k_c_tgs = "1234567";//当生命周期过后要换密钥 K_c_tgs
+                        String k_c_tgs = kerberos.create_sessionkey();//当生命周期过后要换密钥 K_c_tgs
                         if(k_c==null){
                             output.writeUTF(USER_NOT_EXITS);
                         }
@@ -93,12 +94,6 @@ public class AS {
                         Date TS2 = new Date();
                         output.writeUTF(kerberos.as_to_client(k_c,k_c_tgs,kerberos.ID_tgs,TS2,kerberos.Lifetime,kerberos.
                                 get_Ticket_tgs("",k_c_tgs,ID_C,AD_C,kerberos.ID_tgs,TS2,kerberos.Lifetime)));
-                    }
-                    else{
-                        //数据库查询失败，返回出错码0000，不存在数据库中
-                        output.writeUTF("0000");
-                        System.out.println("Error: Client 访问 AS失败，不存在此IDc:"+result[0]);
-                        log.error("Client 访问 AS失败，不存在此IDc:"+result[0]);
                     }
                     output.flush();
                     socket.shutdownOutput();
