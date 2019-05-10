@@ -375,6 +375,9 @@ public class DES {
             message = message.substring(0,message.indexOf(0));    //这一步很重要，由于在result中含有ascll码为0的值，导致转换为byte[]时出错，所以要先剔除掉0
         }
         byte[] message_bytes = Base64.decode(message);
+        if(message_bytes == null){
+            return null;
+        }
         int size = message_bytes.length/8;
         byte[][] result_bytes;
         if(size>0){
@@ -493,7 +496,11 @@ public class DES {
         //System.out.println("原文经过base64编码再转回："+ new String(Base64.decode(message)));
         //String[] message_array = DES.split(message);     //因为已经不使用Stirng_to_bitset(String[] array)，所以也不需要此split函数了
         //把String[] 转换成 2进制 的BitSet数组
+
         BitSet[] M_bitSets = base64strings_to_bitsets(message);
+        if(M_bitSets == null){
+            return null;
+        }
         BitSet[] C_bitSets = new BitSet[M_bitSets.length];
         for(int i=0; i<C_bitSets.length; i++){
             C_bitSets[i] = Encrypt(M_bitSets[i],0);
@@ -504,6 +511,9 @@ public class DES {
 
     public String decrypt_string(String message){
         BitSet[] C_bitSets = base64strings_to_bitsets(message);
+        if(C_bitSets == null){
+            return null;
+        }
         BitSet[] M_bitSets = new BitSet[C_bitSets.length];
         for(int i=0; i<C_bitSets.length; i++){
             M_bitSets[i] = Encrypt(C_bitSets[i],1);

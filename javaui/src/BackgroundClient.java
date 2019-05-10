@@ -54,7 +54,7 @@ public class BackgroundClient {
     RSA rsa;
 
     private static final String AS_IP = "192.168.43.199";
-    private static final String TGS_IP = "192.168.43.199";
+    private static final String TGS_IP = "192.168.43.248";
     private static final String V_IP = "192.168.43.199";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
@@ -77,12 +77,18 @@ public class BackgroundClient {
         pubkey[1]=new BigInteger("65537");
     }
 
-
     public boolean Verify() throws InterruptedException, UnknownHostException {
 
         String Ticket_v;
         String ID_c = userId.getText();//从ui界面获取
         String K_c = userPass.getText();
+        if(K_c.length()<7){
+            while(K_c.length()<7){
+                K_c = K_c + "0";
+            }
+        }else if(K_c.length()>7){
+            K_c = K_c.substring(0,7);
+        }
         InetAddress address = InetAddress.getLocalHost();
         String[] AD_C_array = address.getHostAddress().split("\\.");
         String AD_c = "";
@@ -153,7 +159,7 @@ public class BackgroundClient {
             kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给V的加密报文："+ message3);
             ByteBuffer buff = ByteBuffer.allocate(1024);
             String receive3 = "";//接受信息
-            sleep(100);
+            sleep(500);
             while(sc.read(buff) > 0)
             {
                 buff.flip();
@@ -172,7 +178,8 @@ public class BackgroundClient {
                 verify_result = true;
                 rsa=new RSA(pubkey,selfkey);
             }else {
-                System.out.println("认证失败: TS5 不符合 ，Log时间:" + new Date());
+                System.out.println("认证失败: TS5 不符合 ，TS5.getTime()+1===" + String.valueOf(TS5.getTime()+1));
+                System.out.println("接收到的TS5+1" + TS6);
                 log.error("认证失败: TS5 不符合");
                 kerberostextarea.setText(kerberostextarea.getText() + "\n认证失败: TS5 不符合");
                 verify_result = false;
@@ -206,12 +213,20 @@ public class BackgroundClient {
             String pk = kerberos.parse_Certification(receive);
             String ID_c = userId.getText();//从ui界面获取
             String K_c = userPass.getText();
+            if(K_c.length()<7){
+                while(K_c.length()<7){
+                    K_c = K_c + "0";
+                }
+            }else if(K_c.length()>7){
+                K_c = K_c.substring(0,7);
+            }
 
             if(!pk.equals(null)){
                 output.writeUTF(kerberos.client_id_key(ID_c,K_c,pk));
                 receive = input.readUTF();  //注册情况
                 if(receive.equals("0002")){
                     log.error(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
+                    System.out.println(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
                     return false;
                 }else {
                     System.out.println("注册成功，ID_C: "+ ID_c);
@@ -219,6 +234,7 @@ public class BackgroundClient {
                 }
             }else {
                 log.error(" 注册失败，错误原因: 证书认证失败");
+                System.out.println(" 注册失败，错误原因: 证书认证失败");
                 return false;
             }
         } catch (IOException e) {
@@ -241,8 +257,7 @@ public class BackgroundClient {
      *申请匿名昵称
      */
     public boolean RequestAnonymous(String anonymousname) throws IOException, InterruptedException {
-        if ("".equals(anonymousname)) return false; //不允许发空消息
-        else if ("".equals(name)) {
+        if ("".equals(name)) {
             sc.write(charset.encode(PackageMessage(anonymousname,USER_REQUIRE)));//sc既能写也能读，这边是写
         }
         ByteBuffer buff = ByteBuffer.allocate(1024);
@@ -250,7 +265,7 @@ public class BackgroundClient {
         String content = "";
         int num=0;
         while (sym==0) {
-            if(num>20)
+            if(num>80)
                 return false;
             num++;
             sleep(10);
@@ -485,6 +500,9 @@ public class BackgroundClient {
         DES d=new DES(SessionKey);
         UiTextAreaCiphertext(message,receive);
         message=d.decrypt_string(message);
+        if(message == null){
+            return false;
+        }
         if(message.indexOf(0) >=0){
             message = message.substring(0,message.indexOf(0));    //这一步很重要，由于在result中含有ascll码为0的值，导致转换为byte[]时出错，所以要先剔除掉0
         }
@@ -504,8 +522,11 @@ public class BackgroundClient {
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             if(length>0){
-                String info=message.substring(12,12+length);
-
+                String info;
+                if(length>message.length()-12)
+                    info=message.substring(12,message.length());
+                else
+                    info=message.substring(12,12+length);
                 if(chattextarea == null){
                     return false;
                 }
@@ -518,10 +539,6 @@ public class BackgroundClient {
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
-            if(message.length()>12+length+8+signlen){
-                String remain=message.substring(12+length+8+signlen);
-                unPackage(remain);
-            }
             return true;
         }
         else if(type == USER_EXIST){
@@ -533,10 +550,6 @@ public class BackgroundClient {
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
-            if(message.length()>12+length+8){
-                String remain=message.substring(12+length+8);
-                unPackage(remain);
-            }
             name="";
             sym=-1;
             return false;
@@ -545,16 +558,16 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_REGIST_SUCC,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            String info=message.substring(12,12+length);
+            String info;
+            if(length>message.length()-12)
+                info=message.substring(12,message.length());
+            else
+                info=message.substring(12,12+length);
             /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
-            if(message.length()>12+length+8){
-                String remain=message.substring(12+length+8);
-                unPackage(remain);
-            }
             sym=1;
             name=info;
             return true;
@@ -568,10 +581,6 @@ public class BackgroundClient {
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
-            if(message.length()>12+length+8){
-                String remain=message.substring(12+length+8);
-                unPackage(remain);
-            }
             AquireList(list);
             return true;
         }
@@ -597,12 +606,13 @@ public class BackgroundClient {
 
             int length=Integer.parseInt(len);
             if(length>0){
-                String info=message.substring(12,12+length);
+                String info;
+                if(length>message.length()-12)
+                    info=message.substring(12,message.length());
+                else
+                    info=message.substring(12,12+length);
+
                 UntagList(list,info);
-            }
-            if(message.length()>12+length+8){
-                String remain=message.substring(12+length+8);
-                unPackage(remain);
             }
             return true;
         }
