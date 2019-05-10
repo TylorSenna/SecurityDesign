@@ -53,9 +53,9 @@ public class BackgroundClient {
     private  BigInteger[] selfkey = new BigInteger[2];//client的私钥
     RSA rsa;
 
-    private static final String AS_IP = "127.0.0.1";
-    private static final String TGS_IP = "127.0.0.1";
-    private static final String V_IP = "127.0.0.1";
+    private static final String AS_IP = "192.168.43.199";
+    private static final String TGS_IP = "192.168.43.199";
+    private static final String V_IP = "192.168.43.199";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
     static Socket socket = null;
@@ -387,7 +387,7 @@ public class BackgroundClient {
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
-            str=PutSign(str);
+            //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_EXIT,send);
@@ -396,7 +396,7 @@ public class BackgroundClient {
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
-            str=PutSign(str);
+            //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_LOGIN,send);
@@ -420,7 +420,7 @@ public class BackgroundClient {
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
-            str=PutSign(str);
+            //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_REQUIRE,send);
@@ -428,7 +428,7 @@ public class BackgroundClient {
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
-            str=PutSign(str);
+            //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_REGIST_SUCC,send);
@@ -436,7 +436,7 @@ public class BackgroundClient {
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
-            str=PutSign(str);
+            //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
             UiTextAreaPlaintext(str,USER_EXIST,send);
@@ -528,13 +528,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_EXIST,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            content=message.substring(0,12+length);
+            /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
-                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
-            if(message.length()>12+length+8+signlen){
-                String remain=message.substring(12+length+8+signlen);
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
+            if(message.length()>12+length+8){
+                String remain=message.substring(12+length+8);
                 unPackage(remain);
             }
             name="";
@@ -546,13 +546,13 @@ public class BackgroundClient {
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
             String info=message.substring(12,12+length);
-            content=message.substring(0,12+length);
+            /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
-                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
-            if(message.length()>12+length+8+signlen){
-                String remain=message.substring(12+length+8+signlen);
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
+            if(message.length()>12+length+8){
+                String remain=message.substring(12+length+8);
                 unPackage(remain);
             }
             sym=1;
@@ -563,13 +563,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_LOGIN,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            content=message.substring(0,12+length);
+            /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
-                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
-            if(message.length()>12+length+8+signlen){
-                String remain=message.substring(12+length+8+signlen);
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
+            if(message.length()>12+length+8){
+                String remain=message.substring(12+length+8);
                 unPackage(remain);
             }
             AquireList(list);
@@ -579,13 +579,13 @@ public class BackgroundClient {
             UiTextAreaPlaintext(message,USER_EXIT,receive);
             String len=message.substring(4,12);
             int length=Integer.parseInt(len);
-            content=message.substring(0,12+length);
+            /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
-                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
-            if(message.length()>12+length+8+signlen){
-                String remain=message.substring(12+length+8+signlen);
+                System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
+            if(message.length()>12+length+8){
+                String remain=message.substring(12+length+8);
                 unPackage(remain);
             }
             AquireList(list);
