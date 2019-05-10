@@ -1,9 +1,8 @@
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import javax.swing.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -51,8 +50,8 @@ public class BackgroundClient {
     public JTextField userPass;
 
     private static final String AS_IP = "192.168.43.199";
-    private static final String TGS_IP = "192.168.43.248";
-    private static final String V_IP = "192.168.43.196";
+    private static final String TGS_IP = "192.168.43.199";
+    private static final String V_IP = "192.168.43.199";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
     static Socket socket = null;
@@ -62,8 +61,8 @@ public class BackgroundClient {
     private static final Logger log = LogManager.getLogger(BackgroundClient.class);
 
     /*
-    * 初始化一个用户进程
-    * */
+     * 初始化一个用户进程
+     * */
     public void init() throws IOException {
         selector = Selector.open();
         //连接远程主机的IP和端口
@@ -135,7 +134,12 @@ public class BackgroundClient {
 
             //Server V
             Date TS5 = new Date();
-            String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c(SessionKey,ID_c,AD_c,TS5));  //调用Kerberos类函数生成消息字符串
+            File fileS = new File("E://公私钥.txt");
+            BufferedReader br = new BufferedReader(new FileReader(fileS));//构造一个BufferedReader类来读取文件
+            String N = br.readLine();
+            String PK = br.readLine();
+            br.close();
+            String message3 = kerberos.client_to_v(Ticket_v,kerberos.get_Authenticator_c_sig(SessionKey,ID_c,AD_c,TS5,N,PK));  //调用Kerberos类函数生成消息字符串
             sc.write(charset.encode(USER_VERIFY + message3));//发送信息给Server V，表示要认证
             kerberostextarea.setText(kerberostextarea.getText() + "\nClient发给V的加密报文："+ message3);
             ByteBuffer buff = ByteBuffer.allocate(1024);
@@ -198,7 +202,6 @@ public class BackgroundClient {
                 receive = input.readUTF();  //注册情况
                 if(receive.equals("0002")){
                     log.error(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
-                    System.out.println(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
                     return false;
                 }else {
                     System.out.println("注册成功，ID_C: "+ ID_c);
@@ -206,7 +209,6 @@ public class BackgroundClient {
                 }
             }else {
                 log.error(" 注册失败，错误原因: 证书认证失败");
-                System.out.println(" 注册失败，错误原因: 证书认证失败");
                 return false;
             }
         } catch (IOException e) {
@@ -226,7 +228,7 @@ public class BackgroundClient {
 
 
     /*
-    *申请匿名昵称
+     *申请匿名昵称
      */
     public boolean RequestAnonymous(String anonymousname) throws IOException, InterruptedException {
         if ("".equals(anonymousname)) return false; //不允许发空消息
@@ -243,7 +245,7 @@ public class BackgroundClient {
             num++;
             sleep(10);
         }
-            //若系统发送通知名字已经存在，则需要换个昵称
+        //若系统发送通知名字已经存在，则需要换个昵称
         if(sym==1){
             sym=0;
             return true;
@@ -255,7 +257,7 @@ public class BackgroundClient {
     }
 
     /*
-    *将界面接口赋值
+     *将界面接口赋值
      */
     public void update(JTextArea chattextarea0,JTextArea kerberostextarea0,JTextArea datatextarea0)
     {
@@ -263,8 +265,8 @@ public class BackgroundClient {
 
     }
     /*
-    *将界面接口赋值
-    */
+     *将界面接口赋值
+     */
     public void update(JTextArea kerberostextarea0,JTextArea datatextarea0)
     {
         kerberostextarea=kerberostextarea0;
@@ -272,7 +274,7 @@ public class BackgroundClient {
     }
 
     /*
-    *重载用户进程代码
+     *重载用户进程代码
      */
     private class ClientThread implements Runnable {
         public void run() {
@@ -298,7 +300,7 @@ public class BackgroundClient {
     }
 
     /*
-    *开启进程进行监听服务器发来的数据
+     *开启进程进行监听服务器发来的数据
      */
     public void StartThread()
     {
@@ -307,7 +309,7 @@ public class BackgroundClient {
     }
 
     /*
-    *将用户信息发送到服务器端
+     *将用户信息发送到服务器端
      */
     public void SendMessage(String line) throws IOException {
         line = name+": "+line;
@@ -316,8 +318,8 @@ public class BackgroundClient {
 
 
     /*
-    *用户退出时发送包
-    */
+     *用户退出时发送包
+     */
     public void UserExit() throws IOException {
         sc.write(charset.encode(PackageMessage(name,USER_EXIT)));
     }
@@ -325,7 +327,7 @@ public class BackgroundClient {
 
 
     /*
-    *处理接收到的字符串
+     *处理接收到的字符串
      */
     private void dealWithSelectionKey(SelectionKey sk) throws IOException, InterruptedException {
         if(sk.isReadable())
@@ -344,16 +346,16 @@ public class BackgroundClient {
         }
     }
     /*
-    *解开在线用户列表
-    */
+     *解开在线用户列表
+     */
     private void UntagList(JList<String> list, String content)
     {
         String[] arrayContent = content.toString().split(USER_CONTENT_SPILIT);
         updataOnline(list,arrayContent);
     }
     /*
-    *请求在线用户列表
-    */
+     *请求在线用户列表
+     */
     public void AquireList(JList<String> list0) throws IOException, InterruptedException {
         list=list0;
         sc.write(charset.encode(PackageMessage("",USER_LIST)));//sc既能写也能读，这边是写
@@ -364,8 +366,8 @@ public class BackgroundClient {
     }
 
     /*
-    *将消息封装
-    */
+     *将消息封装
+     */
     public String PackageMessage(String message,int type)
     {
         DES d=new DES(SessionKey);
@@ -466,8 +468,8 @@ public class BackgroundClient {
 
 
     /*
-    *将消息解封
-    */
+     *将消息解封
+     */
     public boolean unPackage(String message) throws IOException, InterruptedException {
         if(message.length()==0){
             return false;

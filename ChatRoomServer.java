@@ -2,6 +2,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -205,6 +206,7 @@ public class ChatRoomServer {
 
             System.out.println("k_c_v:"+k_c_v);
             System.out.println("注册用户map添加前大小："+map.size());
+
             String map_client_value[] = new String[3];
             map_client_value[0] = k_c_v;
             map_client_value[1] = client_N;
