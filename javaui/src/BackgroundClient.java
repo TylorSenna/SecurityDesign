@@ -21,6 +21,16 @@ import java.util.Vector;
 import static java.lang.Thread.sleep;
 
 
+class Information{
+    public String type="";
+    public String len="";
+    public String info="";
+    public String hashlen="";
+    public String hash="";
+}
+
+
+
 public class BackgroundClient {
     private Selector selector = null;
     private static final int port = 9999;
@@ -53,9 +63,9 @@ public class BackgroundClient {
     private  BigInteger[] selfkey = new BigInteger[2];//client的私钥
     RSA rsa;
 
-    private static final String AS_IP = "192.168.43.199";
-    private static final String TGS_IP = "192.168.43.248";
-    private static final String V_IP = "192.168.43.199";
+    private static final String AS_IP = "192.168.1.153";
+    private static final String TGS_IP = "127.0.0.1";
+    private static final String V_IP = "192.168.1.102";
     private static final int AS_PORT = 8888;
     private static final int TGS_PORT = 8889;
     static Socket socket = null;
@@ -386,7 +396,7 @@ public class BackgroundClient {
      */
     public void AquireList(JList<String> list0) throws IOException, InterruptedException {
         list=list0;
-        sc.write(charset.encode(PackageMessage("",USER_LIST)));//sc既能写也能读，这边是写
+        sc.write(charset.encode(PackageMessage("require users list",USER_LIST)));//sc既能写也能读，这边是写
     }
     public static void updataOnline(JList<String> list,String []s)
     {
@@ -398,66 +408,76 @@ public class BackgroundClient {
      */
     public String PackageMessage(String message,int type)
     {
+        Information inform=new Information();
         DES d=new DES(SessionKey);
+        inform.info=message;
         String str=""+message;
         String result="";
         int len=message.length();
+        inform.len=IntToString(len);
         if(type==USER_EXIT) {
             str=IntToString(len)+str;
             str="1000"+str;
+            inform.type="1000";
             //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_EXIT,send);
+            UiTextAreaPlaintext(USER_EXIT,send,inform);
             return result;
         }
         else if(type==USER_LOGIN) {
             str=IntToString(len)+str;
             str="1002"+str;
+            inform.type="1002";
             //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_LOGIN,send);
+            UiTextAreaPlaintext(USER_LOGIN,send,inform);
             return result;
         }
         else if(type==USER_SEND){
             str=IntToString(len)+str;
             str="1001"+str;
+            inform.type="1001";
             str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_SEND,send);
+            UiTextAreaPlaintext(USER_SEND,send,inform);
             return result;
         }else if(type==USER_LIST){
             str=IntToString(len)+str;
             str="1004"+str;
+            inform.type="1004";
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_LIST,send);
+            UiTextAreaPlaintext(USER_LIST,send,inform);
             return result;
         }else if(type==USER_REQUIRE){
             str=IntToString(len)+str;
             str="1006"+str;
+            inform.type="1006";
             //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_REQUIRE,send);
+            UiTextAreaPlaintext(USER_REQUIRE,send,inform);
             return result;
         }else if(type==USER_REGIST_SUCC){
             str=IntToString(len)+str;
             str="1005"+str;
+            inform.type="1005";
             //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_REGIST_SUCC,send);
+            UiTextAreaPlaintext(USER_REGIST_SUCC,send,inform);
             return result;
         }else if(type==USER_EXIST){
             str=IntToString(len)+str;
             str="1003"+str;
+            inform.type="1003";
             //str=PutSign(str);
             result=d.encrypt_string(str);
             UiTextAreaCiphertext(result,send);
-            UiTextAreaPlaintext(str,USER_EXIST,send);
+            UiTextAreaPlaintext(USER_EXIST,send,inform);
             return result;
         }else{
             return str;
@@ -501,6 +521,7 @@ public class BackgroundClient {
             return false;
         }
         DES d=new DES(SessionKey);
+        Information inform=new Information();
         UiTextAreaCiphertext(message,receive);
         message=d.decrypt_string(message);
         if(message == null){
@@ -514,6 +535,7 @@ public class BackgroundClient {
         if(message.length()<4)
             return false;
         String type0=message.substring(0,4);
+        inform.type=type0;
         if(!isNumeric(type0))
             return false;
         int type=Integer.parseInt(type0);
@@ -521,15 +543,22 @@ public class BackgroundClient {
             if(name.length()==0){
                 return true;
             }
-            UiTextAreaPlaintext(message,USER_SEND,receive);
+
             String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
             if(length>0){
                 String info;
                 if(length>message.length()-12)
+                {
                     info=message.substring(12,message.length());
+                    inform.info=info;
+                }
                 else
+                {
                     info=message.substring(12,12+length);
+                    inform.info=info;
+                }
                 if(chattextarea == null){
                     return false;
                 }
@@ -539,15 +568,30 @@ public class BackgroundClient {
             }
             content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
+            inform.hashlen=message.substring(12+length,12+length+8);
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
+            inform.hash=message.substring(12+length+8,12+length+8+signlen);
+            UiTextAreaPlaintext(USER_SEND,receive,inform);
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
             return true;
         }
         else if(type == USER_EXIST){
-            UiTextAreaPlaintext(message,USER_EXIST,receive);
+
             String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
+            if(length>0) {
+                String info;
+                if (length > message.length() - 12) {
+                    info = message.substring(12, message.length());
+                    inform.info = info;
+                } else {
+                    info = message.substring(12, 12 + length);
+                    inform.info = info;
+                }
+            }
+            UiTextAreaPlaintext(USER_EXIST,receive,inform);
             /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
@@ -558,14 +602,17 @@ public class BackgroundClient {
             return false;
         }
         else if(type == USER_REGIST_SUCC){
-            UiTextAreaPlaintext(message,USER_REGIST_SUCC,receive);
+
             String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
             String info;
             if(length>message.length()-12)
                 info=message.substring(12,message.length());
             else
                 info=message.substring(12,12+length);
+            inform.info=info;
+            UiTextAreaPlaintext(USER_REGIST_SUCC,receive,inform);
             /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
@@ -576,9 +623,17 @@ public class BackgroundClient {
             return true;
         }
         else if(type == USER_LOGIN){
-            UiTextAreaPlaintext(message,USER_LOGIN,receive);
+
             String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
+            String info;
+            if(length>message.length()-12)
+                info=message.substring(12,message.length());
+            else
+                info=message.substring(12,12+length);
+            inform.info=info;
+            UiTextAreaPlaintext(USER_LOGIN,receive,inform);
             /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
@@ -588,25 +643,30 @@ public class BackgroundClient {
             return true;
         }
         else if(type == USER_EXIT){
-            UiTextAreaPlaintext(message,USER_EXIT,receive);
+
             String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
+            String info;
+            if(length>message.length()-12)
+                info=message.substring(12,message.length());
+            else
+                info=message.substring(12,12+length);
+            inform.info=info;
+            UiTextAreaPlaintext(USER_EXIT,receive,inform);
             /*content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
             int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen));
             if(content.hashCode()!=hash)
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");*/
-            if(message.length()>12+length+8){
-                String remain=message.substring(12+length+8);
-                unPackage(remain);
-            }
+
             AquireList(list);
             return true;
         }
         else if(type == USER_LIST){
-            UiTextAreaPlaintext(message,USER_LIST,receive);
-            String len=message.substring(4,12);
 
+            String len=message.substring(4,12);
+            inform.len=len;
             int length=Integer.parseInt(len);
             if(length>0){
                 String info;
@@ -614,7 +674,8 @@ public class BackgroundClient {
                     info=message.substring(12,message.length());
                 else
                     info=message.substring(12,12+length);
-
+                inform.info=info;
+                UiTextAreaPlaintext(USER_LIST,receive,inform);
                 UntagList(list,info);
             }
             return true;
@@ -626,12 +687,16 @@ public class BackgroundClient {
      * 将字符串传入ui前端的数据交流区
      * type  数据包的种类
      * sor   发送还是接收
+     * inform字符串解析后的数据
      * */
-    private void UiTextAreaPlaintext(String text,int type,int sor)
+    private void UiTextAreaPlaintext(int type,int sor,Information inform)
     {
-        text="  plaintext: "+text;
+        String text="";
+        text="  plaintext: (消息类型)"+inform.type;
+        text=text+"(内容长度)"+inform.len+"(消息内容)"+inform.info;
         if(sor==receive){
             if(type==USER_SEND){
+                text=text+"(签名长度)"+inform.hashlen+"(签名)"+inform.hash;
                 text="(receive) "+text+"(用户接收的聊天消息)";
                 String str=datatextarea.getText();
                 datatextarea.setText(str+"\n"+text);
