@@ -191,6 +191,10 @@ public class ChatRoomServer {
      *将消息解封
      */
     public boolean unPackage(String message) throws IOException {
+        if(message == null){
+            System.out.println("message is null!!!!!!!!!!!!!");
+            return false;
+        }
         String typ=message.substring(0,4);
         String content="";
         if(typ.equals(USER_VERIFY)){
@@ -225,6 +229,9 @@ public class ChatRoomServer {
         }
         DES d=new DES(map.get(sc0)[0]);
         message=d.decrypt_string(message);
+        if(message == null){
+            return false;
+        }
         String type0=message.substring(0,4);
         int type=Integer.parseInt(type0);
         if(type == USER_SEND){
@@ -233,8 +240,8 @@ public class ChatRoomServer {
             String info=message.substring(12,12+length);
             content=message.substring(0,12+length);
             int signlen=Integer.parseInt(message.substring(12+length,12+length+8));
-            int hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
-            if(content.hashCode()!=hash)
+            String hash=VertifySign(message.substring(12+length+8,12+length+8+signlen),sc0);
+            if(!String.valueOf(content.hashCode()).equals(hash))
                 System.out.println("warning!!!!!!!!!!!!!!!!!!!!!!!!!!someone distort the message!");
             BroadCast(selector, null, PackageMessage(info,USER_SEND),USER_SEND);
         }
@@ -354,7 +361,7 @@ public class ChatRoomServer {
     /*
      * 将传入的字符串进行rsa解密并返回解密后的字符串
      * */
-    private int VertifySign(String cyphertext,SocketChannel sc)
+    private String VertifySign(String cyphertext,SocketChannel sc)
     {
         BigInteger[] pubkey = new BigInteger[2];
         pubkey[0]=new BigInteger(map.get(sc)[1]);
@@ -362,7 +369,7 @@ public class ChatRoomServer {
         RSA rsa=new RSA(pubkey,selfkey);
         System.out.println("cyphertext:  "+cyphertext);
         String hashnum=rsa.verify_string(cyphertext);
-        return Integer.parseInt(hashnum);
+        return hashnum;
     }
 
 
