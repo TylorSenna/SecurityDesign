@@ -335,12 +335,8 @@ public class AntChatUi {
                 BackgroundClient client=new BackgroundClient();
                 client.userId = jtf01;
                 client.userPass =jpf01;
-                boolean result = client.Register();
-                if(result){
-                    JOptionPane.showMessageDialog(null, "注册成功!");
-                }else {
-                    JOptionPane.showMessageDialog(null, "注册错误!");
-                }
+                String result = client.Register();
+                JOptionPane.showMessageDialog(null, result);
             }
         });
         // 将各组件添加到容器中
@@ -389,9 +385,6 @@ public class AntChatUi {
         panel.add(jl2);
 
     }
-
-
-
 
     public static void main(String[]argc)
     {

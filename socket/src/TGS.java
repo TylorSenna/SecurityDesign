@@ -13,16 +13,16 @@ public class TGS {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8889);
         System.out.println("TGS server start at:" + new Date());
-        TGSthread a = new TGSthread();
         while (true) {
             Socket socket = serverSocket.accept();
+            TGSthread a = new TGSthread();
             a.setSocket(socket);
             new Thread(a).start();
         }
     }
 
 }
-class TGSthread  implements Runnable{
+class TGSthread implements Runnable{
     Socket socket;
     private static final Logger log = LogManager.getLogger(TGS.class);
     public void setSocket(Socket socket){

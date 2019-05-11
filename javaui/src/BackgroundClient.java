@@ -198,7 +198,7 @@ public class BackgroundClient {
         return verify_result;
     }
 
-    public boolean Register(){
+    public String Register(){
         try {
             socket = new Socket(AS_IP, AS_PORT);
             output = new DataOutputStream(socket.getOutputStream());
@@ -223,23 +223,26 @@ public class BackgroundClient {
 
             if(!pk.equals(null)){
                 output.writeUTF(kerberos.client_id_key(ID_c,K_c,pk));
+                sleep(500);
                 receive = input.readUTF();  //注册情况
                 if(receive.equals("0002")){
                     log.error(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
                     System.out.println(" 注册失败，错误原因: 已存在此用户ID_c:" + ID_c);
-                    return false;
+                    return "注册失败，错误原因: 已存在此用户ID_c:" + ID_c;
                 }else {
                     System.out.println("注册成功，ID_C: "+ ID_c);
-                    return true;
+                    return "注册成功，ID_C: "+ ID_c;
                 }
             }else {
                 log.error(" 注册失败，错误原因: 证书认证失败");
                 System.out.println(" 注册失败，错误原因: 证书认证失败");
-                return false;
+                return "注册失败，错误原因: 证书认证失败";
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
             try {
                 input.close();
                 output.close();
@@ -249,7 +252,7 @@ public class BackgroundClient {
             }
         }
         System.out.println(" 注册失败，错误原因: 未获取证书");
-        return false;
+        return " 注册失败，错误原因: 未获取证书";
     }
 
 
