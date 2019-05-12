@@ -137,6 +137,7 @@ public class BackgroundClient {
             }
             String k_c_tgs = result1[0];
             String Ticket_tgs = result1[4];  //未解密的ticket_tgs  只有TGS可以解开
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到AS的解密报文：(K_c_tgs:) "+ result1[0] + "(ID_tgs:) " + result1[1] + "(TS_2:) " + result1[2] + "(Lifetime_2:) " + result1[3] + "(Ticket_tgs:) " + result1[4]);
 
             //TGS
             Socket socket2 = new Socket(TGS_IP, TGS_PORT);
@@ -154,6 +155,7 @@ public class BackgroundClient {
             result2 = kerberos.client_parse_tgs(k_c_tgs, receive2);  //调用Kerberos类中解析函数
             SessionKey = result2[0];
             Ticket_v = result2[3];  //未解密的ticket_v  只有Server V可以解开
+            kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到TGS的解密报文：(K_c_v:) "+ result2[0] + "(IDv:) " + result2[1] + "(TS_4:) " + result2[2] + "(Ticket_v:) " + result2[3]);
 
             //Server V
             Date TS5 = new Date();
@@ -182,6 +184,7 @@ public class BackgroundClient {
             result3 = kerberos.client_parse_v(SessionKey, receive3);  //调用Kerberos类中解析函数
             String TS6 = result3[0];
             if(TS6.equals(String.valueOf(TS5.getTime()+1))){
+                kerberostextarea.setText(kerberostextarea.getText() + "\nClient收到Server V的解密报文：(TS5+1:) "+ result3[0]);
                 System.out.println("Client 与 Server V 认证成功，开始提供聊天室服务......");
                 log.info("Client 与 Server V 认证成功，开始提供聊天室服务");
                 kerberostextarea.setText(kerberostextarea.getText() + "\nClient 与 Server V 认证成功，开始提供聊天室服务");
